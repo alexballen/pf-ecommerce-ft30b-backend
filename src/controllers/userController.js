@@ -42,9 +42,9 @@ async function loginUser(req, res) {
                 ]
             }
         })
-        if (!loginUser || loginUser.length === 0) {
+        if (!userProfile) {
             return res.status(404).json({
-                msg: 'Any user was found with those credentials'
+                msg: 'No user found with those credentials'
             })
         }
         res.status(200).send(userProfile)
