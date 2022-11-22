@@ -11,7 +11,7 @@ const  getAllProducts = async(req, res) => {
         })
         if (queryProducts.length === 0) {
            return res.status(404).json({
-                msg: 'Any product is in the database yet'
+                msg: 'No products in the database yet'
             })
         }
         res.status(200).send(queryProducts)
@@ -80,7 +80,7 @@ const getCategories = async (req, res) => {
         let allCategories = await Category.findAll()
         if (allCategories.length === 0 || !allCategories) {
             return res.status(404).json({
-                msg: 'Any category in database'
+                msg: 'No categories in database'
             })
         }
         res.status(200).send(allCategories)
@@ -98,7 +98,7 @@ const getBrands = async (req, res) => {
         let allBrands = await Brand.findAll()
         if (allBrands.length === 0 || !allBrands) {
             return res.status(404).json({
-                msg: 'Any brand in database'
+                msg: 'No brands in database'
             })
         }
         res.status(200).send(allBrands)
