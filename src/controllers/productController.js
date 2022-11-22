@@ -1,4 +1,5 @@
-const { Product, Brand, Category } = require('../db.js')
+const { Product, Brand, Category, Photo } = require('../db.js')
+
 
 
 
@@ -6,7 +7,7 @@ const { Product, Brand, Category } = require('../db.js')
 const  getAllProducts = async(req, res) => {
     try {
         const queryProducts = await Product.findAll({
-            include: [Brand, Category]
+            include: [Brand, Category, Photo]
         })
         if (queryProducts.length === 0) {
            return res.status(404).json({
@@ -31,9 +32,13 @@ async function createNewProduct(req, res) {
             stock,
             unitPrice,
             description,
-            include: [Brand, Category]
+            include: [Brand, Category, Photo]
         })
-        
+        let productPics = await Photo.create({
+            url: pics
+        })
+
+       await newProduct.addPhotos(productPics)
         let [queryBrand, created] = await Brand.findOrCreate({
             where: {
                 name: productBrand
@@ -45,7 +50,7 @@ async function createNewProduct(req, res) {
 
         
 
-        const brandedProduct = await newProduct.setBrand(queryBrand)
+       await newProduct.setBrand(queryBrand)
 
         let [queryCategory, createdCat] = await Category.findOrCreate({
             where: {
@@ -56,9 +61,47 @@ async function createNewProduct(req, res) {
             }
         }) 
 
-        const readyProduct = await brandedProduct.addCategories(queryCategory)
+        const readyProduct = await newProduct.addCategories(queryCategory)
+
+        
+        
 
         res.status(201).send(readyProduct)
+    } catch (error) {
+        res.status(500).json({
+            err: 'Something went wrong please try again later',
+            description: error
+        })
+    }
+}
+
+const getCategories = async (req, res) => {
+    try {
+        let allCategories = await Category.findAll()
+        if (allCategories.length === 0 || !allCategories) {
+            return res.status(404).json({
+                msg: 'Any category in database'
+            })
+        }
+        res.status(200).send(allCategories)
+    } catch (error) {
+         res.status(500).json({
+             err: 'Something went wrong please try again later',
+             description: error
+         })
+    }
+}
+
+
+const getBrands = async (req, res) => {
+    try {
+        let allBrands = await Brand.findAll()
+        if (allBrands.length === 0 || !allBrands) {
+            return res.status(404).json({
+                msg: 'Any brand in database'
+            })
+        }
+        res.status(200).send(allBrands)
     } catch (error) {
         res.status(500).json({
             err: 'Something went wrong please try again later',
@@ -70,8 +113,9 @@ async function createNewProduct(req, res) {
 
 
 
-
 module.exports = {
     getAllProducts,
-    createNewProduct
+    createNewProduct,
+    getCategories,
+    getBrands
 }

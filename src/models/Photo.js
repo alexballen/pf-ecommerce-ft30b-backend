@@ -9,8 +9,12 @@ module.exports = (sequelize) => {
             primaryKey: true
         },
         url: {
-            type: DataTypes.ARRAY(DataTypes.STRING),
+            type: DataTypes.STRING
 
         }
+    }, {
+        timestamp: false,
+        createdAt: false,
+        updatedAt: false,
     })
 }
