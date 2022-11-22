@@ -38,6 +38,8 @@ const { Product, User, Photo, Review, Brand, Category, Address } = sequelize.mod
 Product.hasMany(Review)
 Product.hasMany(Photo)
 
+Photo.belongsTo(Product)
+
 
 Product.belongsTo(Brand)
 Brand.hasMany(Product)

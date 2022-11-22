@@ -42,7 +42,7 @@ async function loginUser(req, res) {
                 ]
             }
         })
-        if (!userProfile) {
+        if (!userProfile || userProfile.length === 0) {
             return res.status(404).json({
                 msg: 'No user found with those credentials'
             })
