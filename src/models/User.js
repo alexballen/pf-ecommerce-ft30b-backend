@@ -11,21 +11,11 @@ module.exports = (sequelize) => {
         },
         firstName: {
             type: DataTypes.STRING,
-            get() {
-
-            },
-            set(value) {
-
-            }
+            
         },
         lastName: {
             type: DataTypes.STRING,
-            get() {
-
-            },
-            set(value) {
-
-            }
+            
         },
         fullName: {
             type: DataTypes.VIRTUAL,
@@ -43,22 +33,12 @@ module.exports = (sequelize) => {
         },
         phoneNumber: {
             type: DataTypes.STRING,
-            get() {
-
-            },
-            set(value) {
-
-            }
+           
         },
         password: {
             type: DataTypes.STRING,
             allowNull: false,
-            get() {
-                
-            },
-            set(value) {
-
-            }
+           
         },
         username: {
             type: DataTypes.STRING,
