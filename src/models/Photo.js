@@ -9,7 +9,10 @@ module.exports = (sequelize) => {
             primaryKey: true
         },
         url: {
-            type: DataTypes.TEXT
+            type: DataTypes.TEXT,
+            validate: {
+                isUrl: true
+            }
 
         }
     }, {
