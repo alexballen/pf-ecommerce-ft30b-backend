@@ -56,7 +56,89 @@ async function loginUser(req, res) {
     }
 }
 
+
+async function toggleBan(req, res) {
+    let { userId } = req.query
+    
+    try {
+        let queryUser = await User.findOne({
+            where: {
+                id: userId
+            }
+        })
+
+        const updatedUser = await queryUser.update({
+            isBan: !queryUser.isBan,
+        })
+
+        res.status(200).send(updatedUser)
+    } catch (error) {
+         res.status(500).json({
+             err: 'Something went wrong please try again later',
+             description: error
+         })
+    }
+}
+
+
+async function toggleAdmin(req, res) {
+    let { userId } = req.query
+
+    try {
+        let queryUser = await User.findOne({
+            where: {
+                id: userId
+            }
+        })
+
+        const updatedUser = await queryUser.update({
+            isAdmin: !queryUser.isAdmin
+        })
+
+        res.status(200).send(updatedUser)
+    } catch (error) {
+        res.status(500).json({
+            err: 'Something went wrong please try again later',
+            description: error
+        })
+    }
+}
+
+
+async function updateUserData(req, res) {
+    let { userId } = req.params
+    let { firstName, lastName, email, password, username, phoneNumber } = req.body
+
+    try {
+        let queryUser = await User.findOne({
+            where: {
+                id: userId
+            }
+        })
+
+        const updatedUser = await queryUser.update({
+            firstName,
+            lastName,
+            email,
+            password,
+            username,
+            phoneNumber
+        })
+
+        res.status(200).send(updatedUser)
+    } catch (error) {
+        res.status(500).json({
+            err: 'Something went wrong please try again later',
+            description: error
+        })
+    }
+}
+
+
 module.exports = {
     createNewUser,
-    loginUser
+    loginUser,
+    toggleBan,
+    toggleAdmin,
+    updateUserData
 }

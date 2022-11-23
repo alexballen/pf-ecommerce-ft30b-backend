@@ -1,5 +1,5 @@
 const { Sequelize } = require('sequelize')
-const { conn, Product, Brand, Category, Photo } = require('../db.js')
+const {  Product, Brand, Category, Photo, Review } = require('../db.js')
 
 
 
@@ -136,11 +136,94 @@ const getBrands = async (req, res) =>
 }
 
 
+const deleteProduct = async (req, res) => {
+    let { id } = req.params
+    
+    try {
+        let queryProduct = await Product.findOne({
+            where: {
+                id
+            }
+        })
+        if (queryProduct.length === 0 || !queryProduct) {
+            return (
+                res.status(404).json({
+                    msg: 'No matches'
+                })
+            )
+        }
+        await queryProduct.destroy()
+        res.status(200).json({
+            msg: 'The product was successfully deleted'
+        })
+    } catch (error) {
+       res.status(500).json({
+           err: 'Something went wrong please try again later',
+           description: error
+       })
+    }
+}
+
+
+const updateProduct = async (req, res) => {
+    let {productId} = req.query
+    let {name, description, stock, unitPrice } = req.body
+    try {
+        const queryProduct = await Product.findOne({
+            where: {
+                id: productId
+            }
+        })
+
+        const updatedProduct = await queryProduct.update({
+            name,
+            description,
+            stock,
+            unitPrice
+        })
+         res.status(201).send(updatedProduct)
+    } catch (error) {
+        res.status(500).json({
+            err: 'Something went wrong please try again later',
+            description: error
+        })
+    }
+}
+
+const addNewReview = async (req, res) => {
+    let { productId } = req.query
+    let { rating, description } = req.body
+    try {
+        const queryProduct = await Product.findOne({
+            where: {
+                id: productId
+            }
+        })
+
+        const newReview = await Review.create({
+            name,
+            description,
+            stock,
+            unitPrice
+        })
+        
+        const reviewedProduct = await queryProduct.addReview(newReview)
+        res.status(201).send(reviewedProduct)
+    } catch (error) {
+        res.status(500).json({
+            err: 'Something went wrong please try again later',
+            description: error
+        })
+    }
+}
 
 
 module.exports = {
     getAllProducts,
     createNewProduct,
     getCategories,
-    getBrands
+    getBrands,
+    deleteProduct,
+    updateProduct,
+    addNewReview
 }
