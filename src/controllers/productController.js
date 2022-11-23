@@ -1,5 +1,4 @@
-const { Sequelize } = require('sequelize')
-const {  Product, Brand, Category, Photo, Review } = require('../db.js')
+const { conn, Product, Brand, Category, Photo, Review } = require('../db.js')
 
 
 
@@ -136,16 +135,19 @@ const getBrands = async (req, res) =>
 }
 
 
-const deleteProduct = async (req, res) => {
+const deleteProduct = async (req, res) =>
+{
     let { id } = req.params
-    
-    try {
+
+    try
+    {
         let queryProduct = await Product.findOne({
             where: {
                 id
             }
         })
-        if (queryProduct.length === 0 || !queryProduct) {
+        if (queryProduct.length === 0 || !queryProduct)
+        {
             return (
                 res.status(404).json({
                     msg: 'No matches'
@@ -156,19 +158,22 @@ const deleteProduct = async (req, res) => {
         res.status(200).json({
             msg: 'The product was successfully deleted'
         })
-    } catch (error) {
-       res.status(500).json({
-           err: 'Something went wrong please try again later',
-           description: error
-       })
+    } catch (error)
+    {
+        res.status(500).json({
+            err: 'Something went wrong please try again later',
+            description: error
+        })
     }
 }
 
 
-const updateProduct = async (req, res) => {
-    let {productId} = req.query
-    let {name, description, stock, unitPrice } = req.body
-    try {
+const updateProduct = async (req, res) =>
+{
+    let { productId } = req.query
+    let { name, description, stock, unitPrice } = req.body
+    try
+    {
         const queryProduct = await Product.findOne({
             where: {
                 id: productId
@@ -181,8 +186,9 @@ const updateProduct = async (req, res) => {
             stock,
             unitPrice
         })
-         res.status(201).send(updatedProduct)
-    } catch (error) {
+        res.status(201).send(updatedProduct)
+    } catch (error)
+    {
         res.status(500).json({
             err: 'Something went wrong please try again later',
             description: error
@@ -190,10 +196,12 @@ const updateProduct = async (req, res) => {
     }
 }
 
-const addNewReview = async (req, res) => {
+const addNewReview = async (req, res) =>
+{
     let { productId } = req.query
     let { rating, description } = req.body
-    try {
+    try
+    {
         const queryProduct = await Product.findOne({
             where: {
                 id: productId
@@ -206,10 +214,11 @@ const addNewReview = async (req, res) => {
             stock,
             unitPrice
         })
-        
+
         const reviewedProduct = await queryProduct.addReview(newReview)
         res.status(201).send(reviewedProduct)
-    } catch (error) {
+    } catch (error)
+    {
         res.status(500).json({
             err: 'Something went wrong please try again later',
             description: error
