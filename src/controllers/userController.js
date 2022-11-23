@@ -1,4 +1,4 @@
-const { User } = require('../db.js')
+const { User, Review } = require('../db.js')
 const {Op} = require('sequelize')
 
 async function createNewUser(req, res) {
@@ -36,11 +36,10 @@ async function loginUser(req, res) {
                     {
                         username: email,
                         password
-                        
                     }
-
                 ]
-            }
+            },
+            include: Review
         })
         if (!userProfile || userProfile.length === 0) {
             return res.status(404).json({
