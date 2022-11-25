@@ -1,8 +1,8 @@
 const { Router } = require('express')
 
-const purcasheRoute = Router()
+const purchaseRoute = Router()
 
 
 
 
-module.exports = purcasheRoute
+module.exports = purchaseRoute
