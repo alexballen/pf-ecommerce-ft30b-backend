@@ -1,9 +1,9 @@
-const { User, Review } = require('../db.js')
+const { User, Review, Cart, Photo, conn } = require('../db.js')
 const {Op} = require('sequelize')
 
 async function createNewUser(req, res) {
-    let { firstName, lastName, email, phoneNumber, password, username } = req.body
-    
+    let { firstName, lastName, email, phoneNumber, password, username, image } = req.body
+    const transaction = await conn.transaction()
     try {
         let newUser = await User.create({
             firstName,
@@ -13,6 +13,19 @@ async function createNewUser(req, res) {
             password,
             username,
         })
+        
+           let userImage = await Photo.create(
+               {
+                   url: image
+               },
+               { transaction }
+           )
+        
+
+
+           await newUser.setPhoto(userImage, { transaction })
+      
+            await transaction.commit()
         res.status(201).send(newUser)
     } catch (error) {
         res.status(500).json({
@@ -39,7 +52,7 @@ async function loginUser(req, res) {
                     }
                 ]
             },
-            include: Review
+            include: [Review, Cart, Photo]
         })
         if (!userProfile || userProfile.length === 0) {
             return res.status(404).json({
