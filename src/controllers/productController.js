@@ -22,7 +22,8 @@ const getAllProducts = async (req, res) => {
     res.status(200).send(queryProducts);
   } catch (error) {
     res.status(500).json({
-      err: "Something went wrong please try again later",
+        err: "Something went wrong please try again later",
+        description: error
     });
   }
 };
@@ -42,7 +43,8 @@ const getproduct = async (req, res) => {
     res.status(200).json(product);
   } catch (error) {
     res.status(500).json({
-      err: "Something went wrong with the id please try again later",
+        err: "Something went wrong with the id please try again later",
+        description: error
     });
   }
 };
