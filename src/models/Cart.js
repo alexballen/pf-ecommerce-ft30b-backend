@@ -8,7 +8,8 @@ module.exports = (sequelize) => {
             allowNull: false,
             primaryKey: true,
             unique: true
-        }
+        },
+        
     }, {
         timestamp: false,
         createdAt: false,
