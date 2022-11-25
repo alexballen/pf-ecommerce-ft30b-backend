@@ -1,4 +1,5 @@
-const { conn, Product, Brand, Category, Photo, Review } = require('../db.js')
+const { Sequelize } = require('sequelize')
+const { conn, Product, Brand, Category, Photo, Review, User } = require('../db.js')
 
 
 
@@ -9,7 +10,7 @@ const getAllProducts = async (req, res) =>
     try
     {
         const queryProducts = await Product.findAll({
-            include: [Brand, Category, Photo]
+            include: [Brand, Category, Photo, Review]
         })
         if (queryProducts.length === 0)
         {
@@ -198,8 +199,8 @@ const updateProduct = async (req, res) =>
 
 const addNewReview = async (req, res) =>
 {
-    let { productId } = req.query
-    let { rating, description } = req.body
+    let { productId } = req.params
+    let { rating, description, userId } = req.body
     try
     {
         const queryProduct = await Product.findOne({
@@ -207,15 +208,18 @@ const addNewReview = async (req, res) =>
                 id: productId
             }
         })
-
-        const newReview = await Review.create({
-            name,
-            description,
-            stock,
-            unitPrice
+        const queryUser = await User.findOne({
+            where: {
+                id: userId
+            }
         })
 
-        const reviewedProduct = await queryProduct.addReview(newReview)
+        const newReview = await Review.create({
+            rating,
+            description
+        })
+        await newReview.setUser(queryUser)
+        const reviewedProduct = await queryProduct.addReviews(newReview)
         res.status(201).send(reviewedProduct)
     } catch (error)
     {
