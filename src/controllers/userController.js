@@ -146,11 +146,37 @@ async function updateUserData(req, res) {
     }
 }
 
+async function deleteUser(req, res) {
+    const { userId } = req.params
+
+    try {
+        const userToDelete = await User.findOne({
+            where: {
+                id: userId
+            }
+        })
+        
+        if(!userToDelete) {
+            return res.status(404).json({msg: 'No user found, check id sent'})
+        } else {
+            userToDelete.destroy()
+            return res.status(200).json({msg: 'User destroyed successfully'})
+        }
+
+    } catch (error) {
+        res.status(500).json({
+            err: 'Something went wrong please try again later',
+            description: error
+        })
+    }
+}
+
 
 module.exports = {
     createNewUser,
     loginUser,
     toggleBan,
     toggleAdmin,
-    updateUserData
+    updateUserData,
+    deleteUser
 }
