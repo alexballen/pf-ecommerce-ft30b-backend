@@ -29,6 +29,10 @@ module.exports = (sequelize) => {
         quantity: {
             type: DataTypes.STRING,
             
+        },
+        isFeatured: {
+            type: DataTypes.BOOLEAN,
+            defaultValue: false,
         }
     })
 }

@@ -31,11 +31,11 @@ const addProductToCart = async (req, res) => {
        
 
         res.status(200).json({
-            msg: 'articulo agregado correctamente'
+            msg: 'Articulo agregado al carrito correctamente, ¡Genial! ¡Más consumismo!'
         })
     } catch (error) {
         res.status(500).json({
-            err: 'Something went wrong please try again later',
+            err: 'Algo salió terriblemente mal, estamos trabajando en ello',
             description: error
         })
     }
@@ -55,7 +55,7 @@ const getCart = async (req, res) => {
         res.status(200).send(userCart)
     } catch (error) {
         res.status(500).json({
-            err: 'Something went wrong please try again later',
+            err: 'Algo salió terriblemente mal, estamos trabajando en ello',
             description: error
         })
     }
@@ -76,10 +76,10 @@ const removeFromCart = async (req, res) => {
         const queryProuct = await Product.findOne({ where: { id: productId } })
 
         await queryCart.removeProduct(queryProuct)
-        res.status(200).send('Articulo borrado correctamente')
+        res.status(200).json({ msg: 'Articulo removido del carrito, si no puedes pagarlo...' })
     } catch (error) {
         res.status(500).json({
-            err: 'Something went wrong please try again later',
+            err: 'Algo salió terriblemente mal, estamos trabajando en ello',
             description: error
         })
     }
@@ -101,11 +101,13 @@ const deleteAllCart = async (req, res) => {
 
         await queryCart.setCart(null)
         await queryCart.createCart()
-        res.status(200).send('carrito limpado correctamente')
+        res.status(200).json({
+            msg: 'El carrito se vació por completo, parece que no soportó el estilo Neutrón'
+        })
 
     } catch (error) {
          res.status(500).json({
-             err: 'Something went wrong please try again later',
+             err: 'Algo salió terriblemente mal, estamos trabajando en ello',
              description: error
          })
     }

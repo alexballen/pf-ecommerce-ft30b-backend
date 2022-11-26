@@ -30,7 +30,7 @@ async function createNewUser(req, res) {
         res.status(201).send(newUser)
     } catch (error) {
         res.status(500).json({
-            err: 'Something went wrong please try again later',
+            err: 'Algo salió terriblemente mal, estamos trabajando en ello',
             description: error
         })
     }
@@ -57,13 +57,13 @@ async function loginUser(req, res) {
         })
         if (!userProfile || userProfile.length === 0) {
             return res.status(404).json({
-                msg: 'No user found with those credentials'
+                msg: 'No encontramos a nadie que se llame así, quizá exista, pero no está aquí'
             })
         }
         res.status(200).send(userProfile)
     } catch (error) {
         res.status(500).json({
-            err: 'Something went wrong please try again later',
+            err: 'Algo salió terriblemente mal, estamos trabajando en ello',
             description: error
         })
     }
@@ -87,7 +87,7 @@ async function toggleBan(req, res) {
         res.status(200).send(updatedUser)
     } catch (error) {
          res.status(500).json({
-             err: 'Something went wrong please try again later',
+             err: 'Algo salió terriblemente mal, estamos trabajando en ello',
              description: error
          })
     }
@@ -111,7 +111,7 @@ async function toggleAdmin(req, res) {
         res.status(200).send(updatedUser)
     } catch (error) {
         res.status(500).json({
-            err: 'Something went wrong please try again later',
+            err: 'Algo salió terriblemente mal, estamos trabajando en ello',
             description: error
         })
     }
@@ -141,7 +141,7 @@ async function updateUserData(req, res) {
         res.status(200).send(updatedUser)
     } catch (error) {
         res.status(500).json({
-            err: 'Something went wrong please try again later',
+            err: 'Algo salió terriblemente mal, estamos trabajando en ello',
             description: error
         })
     }
@@ -158,15 +158,15 @@ async function deleteUser(req, res) {
         })
         
         if(!userToDelete) {
-            return res.status(404).json({msg: 'No user found, check id sent'})
+            return res.status(404).json({msg: '¡Dejad al usuario tranquilo!'})
         } else {
             userToDelete.destroy()
-            return res.status(200).json({msg: 'User destroyed successfully'})
+            return res.status(200).json({msg: '¡Avada kedabra!..... Oops!'})
         }
 
     } catch (error) {
         res.status(500).json({
-            err: 'Something went wrong please try again later',
+            err: 'Algo salió terriblemente mal, estamos trabajando en ello',
             description: error
         })
     }

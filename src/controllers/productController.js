@@ -16,15 +16,15 @@ const getAllProducts = async (req, res) => {
     });
     if (queryProducts.length === 0) {
       return res.status(404).json({
-        msg: "No products in the database yet",
+        msg: "No hay productos en la base de datos, agrega algunos perezos@",
       });
     }
     res.status(200).send(queryProducts);
   } catch (error) {
     res.status(500).json({
-        err: "Something went wrong please try again later",
+        err: 'Algo salió terriblemente mal, estamos trabajando en ello',
         description: error
-    });
+    })
   }
 };
 
@@ -37,15 +37,15 @@ const getproduct = async (req, res) => {
     });
     if (product.length === 0) {
       return res.status(404).json({
-        msg: "No products in the database yet",
+        msg: "No se encontró el producto que estas buscando... seguramente era una capa",
       });
     }
     res.status(200).json(product);
   } catch (error) {
     res.status(500).json({
-        err: "Something went wrong with the id please try again later",
+        err: 'Algo salió terriblemente mal, estamos trabajando en ello',
         description: error
-    });
+    })
   }
 };
 
@@ -120,9 +120,9 @@ async function createNewProduct(req, res) {
   } catch (error) {
     await transaction.rollback();
     res.status(500).json({
-      err: "Something went wrong please try again later",
-      description: error,
-    });
+        err: 'Algo salió terriblemente mal, estamos trabajando en ello',
+        description: error
+    })
   }
 }
 
@@ -131,15 +131,15 @@ const getCategories = async (req, res) => {
     let allCategories = await Category.findAll();
     if (allCategories.length === 0 || !allCategories) {
       return res.status(404).json({
-        msg: "No categories in database",
+        msg: "Ninguna categoria en la base de datos",
       });
     }
     res.status(200).send(allCategories);
   } catch (error) {
     res.status(500).json({
-      err: "Something went wrong please try again later",
-      description: error,
-    });
+        err: 'Algo salió terriblemente mal, estamos trabajando en ello',
+        description: error
+    })
   }
 };
 
@@ -148,15 +148,15 @@ const getBrands = async (req, res) => {
     let allBrands = await Brand.findAll();
     if (allBrands.length === 0 || !allBrands) {
       return res.status(404).json({
-        msg: "No brands in database",
+        msg: "No hay marcas en la base de datos, llama a Miranda Presley, a Edna Moda seguro que te ayudan con esto",
       });
     }
     res.status(200).send(allBrands);
   } catch (error) {
     res.status(500).json({
-      err: "Something went wrong please try again later",
-      description: error,
-    });
+        err: 'Algo salió terriblemente mal, estamos trabajando en ello',
+        description: error
+    })
   }
 };
 
@@ -171,18 +171,18 @@ const deleteProduct = async (req, res) => {
     });
     if (queryProduct.length === 0 || !queryProduct) {
       return res.status(404).json({
-        msg: "No matches",
+        msg: "Llamamos a Scotland Yard, pero ni ellos encontraon lo que buscas ",
       });
     }
     await queryProduct.destroy();
     res.status(200).json({
-      msg: "The product was successfully deleted",
+      msg: "Se fue, ¡Kaboom!, ya no existe más",
     });
   } catch (error) {
     res.status(500).json({
-      err: "Something went wrong please try again later",
-      description: error,
-    });
+        err: 'Algo salió terriblemente mal, estamos trabajando en ello',
+        description: error
+    })
   }
 };
 
@@ -205,9 +205,9 @@ const updateProduct = async (req, res) => {
     res.status(201).send(updatedProduct);
   } catch (error) {
     res.status(500).json({
-      err: "Something went wrong please try again later",
-      description: error,
-    });
+        err: 'Algo salió terriblemente mal, estamos trabajando en ello',
+        description: error
+    })
   }
 };
 
@@ -235,9 +235,9 @@ const addNewReview = async (req, res) => {
     res.status(201).send(reviewedProduct);
   } catch (error) {
     res.status(500).json({
-      err: "Something went wrong please try again later",
-      description: error,
-    });
+        err: 'Algo salió terriblemente mal, estamos trabajando en ello',
+        description: error
+    })
   }
 };
 
