@@ -1,10 +1,12 @@
 const { User, Review, Cart, Photo, conn } = require('../db.js')
-const {Op} = require('sequelize')
+const { Op } = require('sequelize')
 
-async function createNewUser(req, res) {
-    let { firstName, lastName, email, phoneNumber, password, username, image } = req.body
+async function createNewUser(req, res)
+{
+    let { firstName, lastName, email, phoneNumber, password, username, profilePicture } = req.body
     const transaction = await conn.transaction()
-    try {
+    try
+    {
         let newUser = await User.create({
             firstName,
             lastName,
@@ -13,21 +15,22 @@ async function createNewUser(req, res) {
             password,
             username,
         })
-        
-           let userImage = await Photo.create(
-               {
-                   url: image
-               },
-               { transaction }
-           )
-        
+
+        let userImage = await Photo.create(
+            {
+                url: profilePicture
+            },
+            { transaction }
+        )
 
 
-           await newUser.setPhoto(userImage, { transaction })
-      
-            await transaction.commit()
+
+        await newUser.setPhoto(userImage, { transaction })
+
+        await transaction.commit()
         res.status(201).send(newUser)
-    } catch (error) {
+    } catch (error)
+    {
         res.status(500).json({
             err: 'Something went wrong please try again later',
             description: error
@@ -36,9 +39,11 @@ async function createNewUser(req, res) {
 }
 
 
-async function loginUser(req, res) {
+async function loginUser(req, res)
+{
     let { email, password } = req.body
-    try {
+    try
+    {
         let userProfile = await User.findOne({
             where: {
                 [Op.or]: [
@@ -54,13 +59,15 @@ async function loginUser(req, res) {
             },
             include: [Review, Cart, Photo]
         })
-        if (!userProfile || userProfile.length === 0) {
+        if (!userProfile || userProfile.length === 0)
+        {
             return res.status(404).json({
                 msg: 'No user found with those credentials'
             })
         }
         res.status(200).send(userProfile)
-    } catch (error) {
+    } catch (error)
+    {
         res.status(500).json({
             err: 'Something went wrong please try again later',
             description: error
@@ -69,10 +76,12 @@ async function loginUser(req, res) {
 }
 
 
-async function toggleBan(req, res) {
+async function toggleBan(req, res)
+{
     let { userId } = req.query
-    
-    try {
+
+    try
+    {
         let queryUser = await User.findOne({
             where: {
                 id: userId
@@ -84,19 +93,22 @@ async function toggleBan(req, res) {
         })
 
         res.status(200).send(updatedUser)
-    } catch (error) {
-         res.status(500).json({
-             err: 'Something went wrong please try again later',
-             description: error
-         })
+    } catch (error)
+    {
+        res.status(500).json({
+            err: 'Something went wrong please try again later',
+            description: error
+        })
     }
 }
 
 
-async function toggleAdmin(req, res) {
+async function toggleAdmin(req, res)
+{
     let { userId } = req.query
 
-    try {
+    try
+    {
         let queryUser = await User.findOne({
             where: {
                 id: userId
@@ -108,7 +120,8 @@ async function toggleAdmin(req, res) {
         })
 
         res.status(200).send(updatedUser)
-    } catch (error) {
+    } catch (error)
+    {
         res.status(500).json({
             err: 'Something went wrong please try again later',
             description: error
@@ -117,11 +130,13 @@ async function toggleAdmin(req, res) {
 }
 
 
-async function updateUserData(req, res) {
+async function updateUserData(req, res)
+{
     let { userId } = req.params
     let { firstName, lastName, email, password, username, phoneNumber } = req.body
 
-    try {
+    try
+    {
         let queryUser = await User.findOne({
             where: {
                 id: userId
@@ -138,7 +153,8 @@ async function updateUserData(req, res) {
         })
 
         res.status(200).send(updatedUser)
-    } catch (error) {
+    } catch (error)
+    {
         res.status(500).json({
             err: 'Something went wrong please try again later',
             description: error
@@ -146,24 +162,29 @@ async function updateUserData(req, res) {
     }
 }
 
-async function deleteUser(req, res) {
+async function deleteUser(req, res)
+{
     const { userId } = req.params
 
-    try {
+    try
+    {
         const userToDelete = await User.findOne({
             where: {
                 id: userId
             }
         })
-        
-        if(!userToDelete) {
-            return res.status(404).json({msg: 'No user found, check id sent'})
-        } else {
+
+        if (!userToDelete)
+        {
+            return res.status(404).json({ msg: 'No user found, check id sent' })
+        } else
+        {
             userToDelete.destroy()
-            return res.status(200).json({msg: 'User destroyed successfully'})
+            return res.status(200).json({ msg: 'User destroyed successfully' })
         }
 
-    } catch (error) {
+    } catch (error)
+    {
         res.status(500).json({
             err: 'Something went wrong please try again later',
             description: error
