@@ -1,10 +1,12 @@
 const { Router } = require('express')
-const {addProductToCart, getCart} = require('../controllers/purcasheController')
+const {addProductToCart, getCart, removeFromCart, deleteAllCart} = require('../controllers/purcasheController')
 
 const purcasheRoute = Router()
 
 purcasheRoute.get('/cart', getCart)
-purcasheRoute.post('/addToCart', addProductToCart)
+purcasheRoute.post('/add', addProductToCart)
+purcasheRoute.post('/remove', removeFromCart)
+purcasheRoute.delete('/clean', deleteAllCart)
 
 
 
