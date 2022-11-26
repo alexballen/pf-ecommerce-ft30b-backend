@@ -13,8 +13,9 @@ async function createNewUser(req, res)
             email,
             phoneNumber,
             password,
-            username,
-        })
+            username
+        }, { transaction })
+        console.log(newUser?.dataValues); // probando
 
         let userImage = await Photo.create(
             {
@@ -22,15 +23,16 @@ async function createNewUser(req, res)
             },
             { transaction }
         )
+        console.log(userImage?.dataValues); // probando
 
-
-
-        await newUser.setPhoto(userImage, { transaction })
+        await newUser.setPhoto(userImage, { transaction });
+        console.log(newUser?.dataValues);
 
         await transaction.commit()
         res.status(201).send(newUser)
     } catch (error)
     {
+        await transaction.rollback();
         res.status(500).json({
             err: 'Something went wrong please try again later',
             description: error
