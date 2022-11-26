@@ -22,8 +22,8 @@ async function createNewUser(req, res) {
            )
         
 
-
-           await newUser.setPhoto(userImage, { transaction })
+        await newUser.createCart()
+        await newUser.setPhoto(userImage, { transaction })
       
             await transaction.commit()
         res.status(201).send(newUser)

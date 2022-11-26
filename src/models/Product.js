@@ -25,6 +25,10 @@ module.exports = (sequelize) => {
         unitPrice: {
             type: DataTypes.INTEGER,
             allowNull: false
+        },
+        quantity: {
+            type: DataTypes.STRING,
+            
         }
     })
 }
