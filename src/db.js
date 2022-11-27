@@ -2,13 +2,21 @@ require('dotenv').config();
 const { Sequelize } = require('sequelize');
 const fs = require('fs');
 const path = require('path');
+const Knex = require('knex')
 const {
-  DATABASE_URL
+  DB_HOST, DB_NAME, DB_PASSWORD, DB_USER
 } = process.env;
 
-const sequelize = new Sequelize(DATABASE_URL, {
+
+
+
+const sequelize = new Sequelize({
   protocol: 'postgres',
   dialect: 'postgres',
+  username: DB_USER, 
+  password: DB_PASSWORD,
+  host: DB_HOST,
+  database: DB_NAME,
   dialectOptions: {
     ssl: false
   },
