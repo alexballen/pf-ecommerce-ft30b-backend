@@ -93,8 +93,16 @@ async function createNewProduct(req, res) {
 
     await newProduct.setBrand(queryBrand, { transaction });
 
+    let categoriesArray = []
+
+    if (typeof categories === 'string') {
+      categoriesArray.push(categories)
+    } else {
+      categories.map(c => categoriesArray.push(c))
+    }
+
     let queryCategories = await Promise.all(
-      categories.map(
+      categoriesArray.map(
         async (categoryName) =>
           await Category.findOrCreate({
             where: {
