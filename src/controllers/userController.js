@@ -1,8 +1,8 @@
-const { User, Review, Cart, Photo, conn, country, city } = require('../db.js')
+const { User, Review, Cart, Photo, conn } = require('../db.js')
 const {Op} = require('sequelize')
 
 async function createNewUser(req, res) {
-    let {
+    const {
         firstName,
         lastName,
         email,
@@ -13,6 +13,7 @@ async function createNewUser(req, res) {
         city,
         profileImage
     } = req.body
+    console.log(req.body)
     const transaction = await conn.transaction()
     try {
         let newUser = await User.create({
@@ -25,8 +26,6 @@ async function createNewUser(req, res) {
             country,
             city
         })
-        
-        
 
         await newUser.createCart()
         await newUser.createPhoto({ url: profileImage, transaction })
@@ -48,12 +47,10 @@ async function loginUser(req, res) {
             where: {
                 [Op.or]: [
                     {
-                        email,
-                        password
+                        email
                     },
                     {
                         username: email,
-                        password
                     }
                 ]
             },
@@ -64,7 +61,14 @@ async function loginUser(req, res) {
                 msg: 'No encontramos a nadie que se llame así, quizá exista, pero no está aquí'
             })
         }
-        res.status(200).send(userProfile)
+        userProfile.password === password ? (
+            res.status(200).send(userProfile)
+        ) : (
+                res.status(404).json({
+                msg: 'La contraseña proporcionada no es correcta'
+            })
+        )
+        
     } catch (error) {
         res.status(500).json({
             err: 'Algo salió terriblemente mal, estamos trabajando en ello',

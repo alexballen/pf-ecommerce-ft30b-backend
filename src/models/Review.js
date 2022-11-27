@@ -16,9 +16,32 @@ module.exports = (sequelize) => {
                 max: 5
             },
             allowNull: false,
+            get() {
+                const storedValue = this.getDataValue('rating')
+                const gzippedBuffer = Buffer.from(storedValue, 'base64')
+                const unzippedBuffer = gunzipSync(gzippedBuffer)
+                return unzippedBuffer.toString()
+            },
+            set(value) {
+                const gzippedBuffer = gzipSync(value)
+                this.setDataValue('rating', gzippedBuffer.toString('base64'))
+            }
         },
         description: {
             type: DataTypes.TEXT,
+            get() {
+                const storedValue = this.getDataValue('description')
+                const gzippedBuffer = Buffer.from(storedValue, 'base64')
+                const unzippedBuffer = gunzipSync(gzippedBuffer)
+                return unzippedBuffer.toString()
+            },
+            set(value) {
+                const gzippedBuffer = gzipSync(value)
+                this.setDataValue(
+                    'description',
+                    gzippedBuffer.toString('base64')
+                )
+            }
         }
     })
 }
