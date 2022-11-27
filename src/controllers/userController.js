@@ -1,4 +1,4 @@
-const { User, Review, Cart, Photo, conn, Address } = require('../db.js')
+const { User, Review, Cart, Photo, conn, country, city } = require('../db.js')
 const {Op} = require('sequelize')
 
 async function createNewUser(req, res) {
@@ -9,6 +9,8 @@ async function createNewUser(req, res) {
         phoneNumber,
         password,
         username,
+        country,
+        city,
         profileImage
     } = req.body
     const transaction = await conn.transaction()
@@ -20,6 +22,8 @@ async function createNewUser(req, res) {
             phoneNumber,
             password,
             username,
+            country,
+            city
         })
         
         
@@ -70,57 +74,12 @@ async function loginUser(req, res) {
 }
 
 
-async function toggleBan(req, res) {
-    let { userId } = req.query
-    
-    try {
-        let queryUser = await User.findOne({
-            where: {
-                id: userId
-            }
-        })
 
-        const updatedUser = await queryUser.update({
-            isBan: !queryUser.isBan,
-        })
-
-        res.status(200).send(updatedUser)
-    } catch (error) {
-         res.status(500).json({
-             err: 'Algo salió terriblemente mal, estamos trabajando en ello',
-             description: error
-         })
-    }
-}
-
-
-async function toggleAdmin(req, res) {
-    let { userId } = req.query
-
-    try {
-        let queryUser = await User.findOne({
-            where: {
-                id: userId
-            }
-        })
-
-        const updatedUser = await queryUser.update({
-            isAdmin: !queryUser.isAdmin
-        })
-
-        res.status(200).send(updatedUser)
-    } catch (error) {
-        res.status(500).json({
-            err: 'Algo salió terriblemente mal, estamos trabajando en ello',
-            description: error
-        })
-    }
-}
 
 
 async function updateUserData(req, res) {
     let { userId } = req.params
-    let { firstName, lastName, email, password, username, phoneNumber } = req.body
+    let { firstName, lastName, email, password, username, phoneNumber, country, city } = req.body
 
     try {
         let queryUser = await User.findOne({
@@ -135,7 +94,9 @@ async function updateUserData(req, res) {
             email,
             password,
             username,
-            phoneNumber
+            phoneNumber,
+            country,
+            city,
         })
 
         res.status(200).send(updatedUser)
@@ -176,8 +137,6 @@ async function deleteUser(req, res) {
 module.exports = {
     createNewUser,
     loginUser,
-    toggleBan,
-    toggleAdmin,
     updateUserData,
     deleteUser
 }

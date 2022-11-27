@@ -50,6 +50,14 @@ module.exports = (sequelize) => {
             defaultValue: false,
 
         },
+        city: {
+            type: DataTypes.STRING,
+            allowNull: true,
+        },
+        country: {
+            type: DataTypes.STRING,
+            allowNull: true
+        },
         isBan: {
             type: DataTypes.BOOLEAN,
             defaultValue: false
