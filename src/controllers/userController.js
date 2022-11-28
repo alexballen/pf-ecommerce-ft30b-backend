@@ -1,5 +1,5 @@
 
-const { User, Review, Cart, Photo, conn } = require('../db.js')
+const { User, Review, Cart, Photo, conn, Favorite, Product } = require('../db.js')
 const {Op} = require('sequelize')
 
 async function createNewUser(req, res) {
@@ -21,6 +21,7 @@ async function createNewUser(req, res) {
             lastName,
             email,
             phoneNumber,
+            password,
             username,
             // country,
             // city
@@ -29,6 +30,7 @@ async function createNewUser(req, res) {
         
 
         await newUser.createCart()
+        await newUser.createFavorites()
         await newUser.createPhoto({ url: profileImage, transaction })
         await transaction.commit()
         res.status(201).send(newUser)
@@ -40,54 +42,28 @@ async function createNewUser(req, res) {
     }
 }
 
-
-
-const userLogin = async (req, res, next) => {
-    const {name, picture }=req.body
-    // console.log(req.body)
-    try {
-        const { email } = req.params
-
-        const Us = await User.findOne({where: {
-            [Op.or]: [
-                {
-                    email,
-                },
-                {
-                    username: email,
-                }]}})
-
-        if(!Us){
-            const User = {
-                fullName: name,
-                email: email,
-                image: picture,
-                active: true,
-                isAdmin: false,
-            }
-            const response = await User.create(User)
-
-            const cart = await CreateCart(response._id)
-            console.log('create carrito: '+ cart)
-
-            await EmeilerConfig(User.email, User.fullName)
-            
-            res.status(200).send({
-                msg:"User created succesfully",
-                data:User,
-                db_response: response        
-            })
-        } else if (Us.active === false){
-            res.status(403).send({msg: "User Blocked"})
-        }
-        else{res.status(200).send(Us)}
-
-    } catch (error) {
-        res.status(500).json({
-            err: 'Algo salió terriblemente mal, estamos trabajando en ello',
-            description: error
-        })
-
+async function loginUser(req, res) {
+  let { email, password } = req.body;
+  try {
+    let userProfile = await User.findOne({
+      where: {
+        [Op.or]: [
+          {
+            email,
+            password,
+          },
+          {
+            username: email,
+            password,
+          },
+        ],
+      },
+      include: { all: true, nested: true },
+    });
+    if (!userProfile || userProfile.length === 0) {
+      return res.status(404).json({
+        msg: "No encontramos a nadie que se llame así, quizá exista, pero no está aquí",
+      });
     }
     res.status(200).send(userProfile);
   } catch (error) {
@@ -97,8 +73,6 @@ const userLogin = async (req, res, next) => {
     });
   }
 }
-
-
 
 async function updateUserData(req, res) {
     let { userId } = req.params
@@ -115,7 +89,7 @@ async function updateUserData(req, res) {
             firstName,
             lastName,
             email,
-            
+            password,
             username,
             phoneNumber,
             // country,
@@ -140,11 +114,18 @@ async function deleteUser(req, res) {
                 id: userId
             }
         })
+
+        const queryPhoto = await Photo.findOne({
+            where: {
+                userId: userId
+            }
+        })
         
         if(!userToDelete || userToDelete.length === 0) {
             return res.status(404).json({msg: '¡Dejad al usuario tranquilo!'})
         } else {
             userToDelete.destroy()
+            queryPhoto.destroy()
             return res.status(200).json({msg: '¡Avada kedabra!..... Oops!'})
         }
 
@@ -154,12 +135,7 @@ async function deleteUser(req, res) {
             description: error
         })
     }
-  } catch (error) {
-    res.status(500).json({
-      err: "Algo salió terriblemente mal, estamos trabajando en ello",
-      description: error,
-    });
-  }
+  
 }
 
 async function userSoftDelete(req, res) {
@@ -221,14 +197,78 @@ const getUsers = async (req, res) => {
     }
 }
 
+async function addToFavorites(req, res) {
+    const { userId, productId } = req.body
+    
+    try {
+        const queryProduct = await Product.findOne({
+            where: {
+                id: productId
+            }
+        })
+        const newFavorite = await Favorite.findOne({
+            where: {
+                userId: userId
+            },
+            include: Product
+        })
+        await newFavorite.addProduct(queryProduct)
+        res.status(201).json({
+            msg: '!Un nuevo favorito! ¿Qué? ¿Qué querias? ¿jugo de uva?'
+        })
+    } catch (error) {
+        res.status(500).json({
+            err: 'Algo salió terriblemente mal, estamos trabajando en ello',
+            description: error
+        })
+    }
+}
+
+
+async function removeFromFavorites(req, res) {
+    const { userId, productId } = req.body
+    try {
+        const queryUser = await User.findOne({
+            where: {
+                id: userId
+            },
+            include: Favorite
+        })
+        
+        const queryProduct = await Product.findOne({
+            where: {
+                id: productId
+            }
+        })
+        
+        const userFavorites = await Favorite.findOne({
+            where: {
+               id:  queryUser.favorite.id
+           }
+        })
+        
+        await userFavorites.removeProducts(queryProduct)
+        res.status(200).json({
+            msg: '¡Booo Wendy boo'
+        })
+    } catch (error) {
+        res.status(500).json({
+            err: 'Algo salió terriblemente mal, estamos trabajando en ello',
+            description: error
+        })
+    }
+}
+
+
+
 module.exports = {
 
     createNewUser,
-    userLogin,
-    toggleBan,
-    toggleAdmin,
+    loginUser,
     updateUserData,
     deleteUser,
     getUsers,
     userSoftDelete,
+    addToFavorites,
+    removeFromFavorites,
 }
