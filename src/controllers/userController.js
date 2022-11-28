@@ -136,10 +136,10 @@ async function deleteUser(req, res) {
 
 const getUsers = async (req, res) => {
     try {
-        const allUsers = User.findAll({ include: { all: true, nested: true } })
+        const allUsers = await User.findAll({ include: { all: true, nested: true } })
 
         allUsers.length === 0 ? (
-            res.status(200).json({
+            res.status(404).json({
                 msg: 'Ningun usuario se ha registrado aún... tu pagina no es popular... ¿Quieres que llame a una llorambulancia?'
             })
         ): (
