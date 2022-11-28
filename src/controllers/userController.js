@@ -90,12 +90,7 @@ const userLogin = async (req, res, next) => {
 
     }
     res.status(200).send(userProfile);
-  } catch (error) {
-    res.status(500).json({
-      err: "Algo salió terriblemente mal, estamos trabajando en ello",
-      description: error,
-    });
-  }
+ 
 }
 
 
@@ -227,8 +222,6 @@ module.exports = {
 
     createNewUser,
     userLogin,
-    toggleBan,
-    toggleAdmin,
     updateUserData,
     deleteUser,
     getUsers,
