@@ -20,7 +20,6 @@ async function createNewUser(req, res) {
             lastName,
             email,
             phoneNumber,
-            password,
             username,
             country,
             city
@@ -41,30 +40,46 @@ async function createNewUser(req, res) {
 }
 
 
-async function loginUser(req, res) {
-    let { email, password } = req.body
+const userLogin = async (req, res, next) => {
+    const {name, picture }=req.body
+    // console.log(req.body)
     try {
-        let userProfile = await User.findOne({
-            where: {
-                [Op.or]: [
-                    {
-                        email,
-                        password
-                    },
-                    {
-                        username: email,
-                        password
-                    }
-                ]
-            },
-            include: {all: true, nested: true}
-        })
-        if (!userProfile || userProfile.length === 0) {
-            return res.status(404).json({
-                msg: 'No encontramos a nadie que se llame así, quizá exista, pero no está aquí'
+        const { email } = req.params
+
+        const Us = await User.findOne({where: {
+            [Op.or]: [
+                {
+                    email,
+                },
+                {
+                    username: email,
+                }]}})
+
+        if(!Us){
+            const User = {
+                fullName: name,
+                email: email,
+                image: picture,
+                active: true,
+                isAdmin: false,
+            }
+            const response = await User.create(User)
+
+            const cart = await CreateCart(response._id)
+            console.log('create carrito: '+ cart)
+
+            await EmeilerConfig(User.email, User.fullName)
+            
+            res.status(200).send({
+                msg:"User created succesfully",
+                data:User,
+                db_response: response        
             })
+        } else if (Us.active === false){
+            res.status(403).send({msg: "User Blocked"})
         }
-        res.status(200).send(userProfile)
+        else{res.status(200).send(Us)}
+
     } catch (error) {
         res.status(500).json({
             err: 'Algo salió terriblemente mal, estamos trabajando en ello',
@@ -73,8 +88,52 @@ async function loginUser(req, res) {
     }
 }
 
+async function toggleBan(req, res) {
+    let { userId } = req.query
+    
+    try {
+        let queryUser = await User.findOne({
+            where: {
+                id: userId
+            }
+        })
+
+        const updatedUser = await queryUser.update({
+            isBan: !queryUser.isBan,
+        })
+
+        res.status(200).send(updatedUser)
+    } catch (error) {
+         res.status(500).json({
+             err: 'Something went wrong please try again later',
+             description: error
+         })
+    }
+}
 
 
+async function toggleAdmin(req, res) {
+    let { userId } = req.query
+
+    try {
+        let queryUser = await User.findOne({
+            where: {
+                id: userId
+            }
+        })
+
+        const updatedUser = await queryUser.update({
+            isAdmin: !queryUser.isAdmin
+        })
+
+        res.status(200).send(updatedUser)
+    } catch (error) {
+        res.status(500).json({
+            err: 'Something went wrong please try again later',
+            description: error
+        })
+    }
+}
 
 
 async function updateUserData(req, res) {
@@ -92,7 +151,7 @@ async function updateUserData(req, res) {
             firstName,
             lastName,
             email,
-            password,
+            
             username,
             phoneNumber,
             country,
@@ -136,7 +195,9 @@ async function deleteUser(req, res) {
 
 module.exports = {
     createNewUser,
-    loginUser,
+    userLogin,
+    toggleBan,
+    toggleAdmin,
     updateUserData,
     deleteUser
 }
