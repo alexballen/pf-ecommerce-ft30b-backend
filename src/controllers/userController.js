@@ -118,7 +118,7 @@ async function deleteUser(req, res) {
             }
         })
         
-        if(!userToDelete) {
+        if(!userToDelete || userToDelete.length === 0) {
             return res.status(404).json({msg: '¡Dejad al usuario tranquilo!'})
         } else {
             userToDelete.destroy()
@@ -134,9 +134,29 @@ async function deleteUser(req, res) {
 }
 
 
+const getUsers = async (req, res) => {
+    try {
+        const allUsers = User.findAll({ include: { all: true, nested: true } })
+
+        allUsers.length === 0 ? (
+            res.status(200).json({
+                msg: 'Ningun usuario se ha registrado aún... tu pagina no es popular... ¿Quieres que llame a una llorambulancia?'
+            })
+        ): (
+            res.status(200).send(allUsers)
+        )
+    } catch (error) {
+         res.status(500).json({
+             err: 'Algo salió terriblemente mal, estamos trabajando en ello',
+             description: error
+         })
+    }
+}
+
 module.exports = {
     createNewUser,
     loginUser,
     updateUserData,
-    deleteUser
+    deleteUser,
+    getUsers
 }
