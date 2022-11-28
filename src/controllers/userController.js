@@ -1,4 +1,4 @@
-const { User, Review, Cart, Photo, conn, country, city } = require('../db.js')
+const { User, Review, Cart, Photo, conn } = require('../db.js')
 const {Op} = require('sequelize')
 
 async function createNewUser(req, res) {
@@ -9,8 +9,8 @@ async function createNewUser(req, res) {
         phoneNumber,
         password,
         username,
-        country,
-        city,
+        // country,
+        // city,
         profileImage
     } = req.body
     const transaction = await conn.transaction()
@@ -22,8 +22,8 @@ async function createNewUser(req, res) {
             phoneNumber,
             password,
             username,
-            country,
-            city
+            // country,
+            // city
         })
         
         
@@ -79,7 +79,7 @@ async function loginUser(req, res) {
 
 async function updateUserData(req, res) {
     let { userId } = req.params
-    let { firstName, lastName, email, password, username, phoneNumber, country, city } = req.body
+    let { firstName, lastName, email, password, username, phoneNumber } = req.body
 
     try {
         let queryUser = await User.findOne({
@@ -95,8 +95,8 @@ async function updateUserData(req, res) {
             password,
             username,
             phoneNumber,
-            country,
-            city,
+            // country,
+            // city,
         })
 
         res.status(200).send(updatedUser)
@@ -118,7 +118,7 @@ async function deleteUser(req, res) {
             }
         })
         
-        if(!userToDelete) {
+        if(!userToDelete || userToDelete.length === 0) {
             return res.status(404).json({msg: '¡Dejad al usuario tranquilo!'})
         } else {
             userToDelete.destroy()
@@ -134,9 +134,29 @@ async function deleteUser(req, res) {
 }
 
 
+const getUsers = async (req, res) => {
+    try {
+        const allUsers = User.findAll({ include: { all: true, nested: true } })
+
+        allUsers.length === 0 ? (
+            res.status(200).json({
+                msg: 'Ningun usuario se ha registrado aún... tu pagina no es popular... ¿Quieres que llame a una llorambulancia?'
+            })
+        ): (
+            res.status(200).send(allUsers)
+        )
+    } catch (error) {
+         res.status(500).json({
+             err: 'Algo salió terriblemente mal, estamos trabajando en ello',
+             description: error
+         })
+    }
+}
+
 module.exports = {
     createNewUser,
     loginUser,
     updateUserData,
-    deleteUser
+    deleteUser,
+    getUsers
 }
