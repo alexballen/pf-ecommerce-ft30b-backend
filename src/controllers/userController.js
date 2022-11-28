@@ -68,12 +68,11 @@ const userLogin = async (req, res, next) => {
             const response = await User.create(User)
 
             const cart = await CreateCart(response._id)
-            console.log('create carrito: '+ cart)
 
             await EmeilerConfig(User.email, User.fullName)
             
             res.status(200).send({
-                msg:"User created succesfully",
+                msg:"El usuario se ha creado correctamente, ¡Yei! ¡Nuevas victimas para mi ejercito de espectros!",
                 data:User,
                 db_response: response        
             })
