@@ -1,5 +1,5 @@
 
-const { User, Review, Cart, Photo, conn, Favorite, Product } = require('../db.js')
+const { User, Photo, conn, Favorite, Product } = require('../db.js')
 const {Op} = require('sequelize')
 
 async function createNewUser(req, res) {
@@ -30,7 +30,7 @@ async function createNewUser(req, res) {
         
 
         await newUser.createCart()
-        await newUser.createFavorites()
+        await newUser.createFavorite()
         await newUser.createPhoto({ url: profileImage, transaction })
         await transaction.commit()
         res.status(201).send(newUser)
