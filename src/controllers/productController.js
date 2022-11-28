@@ -182,6 +182,13 @@ const deleteProduct = async (req, res) => {
         msg: "Llamamos a Scotland Yard, pero ni ellos encontraon lo que buscas ",
       });
     }
+
+    const queryPhoto = await Photo.findOne({
+      where: {
+        productId: id,
+      }
+    })
+    await queryPhoto.destroy()
     await queryProduct.destroy();
     res.status(200).json({
       msg: "Se fue, ¡Kaboom!, ya no existe más",

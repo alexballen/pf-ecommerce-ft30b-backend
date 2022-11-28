@@ -70,8 +70,8 @@ Product.belongsToMany(Category, ({ through: 'Product_Category' }))
 Category.belongsToMany(Product, ({through: 'Product_Category'}))
 
 User.hasOne(Address)
-Address.belongsTo(User, { targetKey: 'username', foreignKey: 'owner' })
-User.hasOne(Photo, {sourceKey: 'username', foreignKey:'user'})
+Address.belongsTo(User)
+User.hasOne(Photo)
 
 User.hasMany(Review, {sourceKey: 'username', foreignKey: 'author'})
 Review.belongsTo(User, {targetKey: 'username', foreignKey: 'author'})
@@ -82,7 +82,8 @@ Cart.hasMany(Product)
 
 User.hasOne(Favorite)
 Favorite.belongsTo(User)
-Favorite.hasMany(Product)
+Product.belongsToMany(Favorite, { through: 'Product_Favorite' })
+Favorite.belongsToMany(Product, { through: 'Product_Favorite' })
 
 
 

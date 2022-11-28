@@ -1,5 +1,5 @@
 
-const { User, Review, Cart, Photo, conn, Favorite, Product } = require('../db.js')
+const { User, Photo, conn, Favorite, Product } = require('../db.js')
 const {Op} = require('sequelize')
 
 async function createNewUser(req, res) {
@@ -30,7 +30,7 @@ async function createNewUser(req, res) {
         
 
         await newUser.createCart()
-        await newUser.createFavorites()
+        await newUser.createFavorite()
         await newUser.createPhoto({ url: profileImage, transaction })
         await transaction.commit()
         res.status(201).send(newUser)
@@ -206,13 +206,16 @@ async function addToFavorites(req, res) {
                 id: productId
             }
         })
-        const newFavorite = await Favorite.findOne({
+        const [newFavorite, created] = await Favorite.findOrCreate({
             where: {
                 userId: userId
-            },
+          },
+          defaults: {
+            userId: userId
+          },
             include: Product
         })
-        await newFavorite.addProduct(queryProduct)
+        await newFavorite.addProducts(queryProduct)
         res.status(201).json({
             msg: '!Un nuevo favorito! ¿Qué? ¿Qué querias? ¿jugo de uva?'
         })
