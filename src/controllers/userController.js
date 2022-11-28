@@ -113,11 +113,18 @@ async function deleteUser(req, res) {
                 id: userId
             }
         })
+
+        const queryPhoto = await Photo.findOne({
+            where: {
+                userId: userId
+            }
+        })
         
         if(!userToDelete || userToDelete.length === 0) {
             return res.status(404).json({msg: '¡Dejad al usuario tranquilo!'})
         } else {
             userToDelete.destroy()
+            queryPhoto.destroy()
             return res.status(200).json({msg: '¡Avada kedabra!..... Oops!'})
         }
 
@@ -127,12 +134,7 @@ async function deleteUser(req, res) {
             description: error
         })
     }
-  } catch (error) {
-    res.status(500).json({
-      err: "Algo salió terriblemente mal, estamos trabajando en ello",
-      description: error,
-    });
-  }
+  
 }
 
 async function userSoftDelete(req, res) {
