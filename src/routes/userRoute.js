@@ -1,9 +1,10 @@
 const { Router } = require('express')
-const { createNewUser, loginUser, toggleBan, toggleAdmin, updateUserData, deleteUser, userLogin } = require('../controllers/userController.js')
+const { createNewUser, loginUser, updateUserData, deleteUser, getUsers } = require('../controllers/userController.js')
 
 
 
 const userRoute = Router()
+userRoute.get('/', getUsers)
 userRoute.post('/register', createNewUser)
 userRoute.post('/login/:email', userLogin)
 userRoute.put('/getBan', toggleBan)
