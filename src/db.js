@@ -82,7 +82,8 @@ Cart.hasMany(Product)
 
 User.hasOne(Favorite)
 Favorite.belongsTo(User)
-Favorite.hasMany(Product)
+Favorite.belongsToMany(Product, ({through: 'Favorite_Product'}))
+Product.belongsToMany(Favorite, ({through:'Favorite_Product'}))
 
 
 
