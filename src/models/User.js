@@ -35,11 +35,7 @@ module.exports = (sequelize) => {
             type: DataTypes.STRING,
            
         },
-        password: {
-            type: DataTypes.STRING,
-            allowNull: false,
-           
-        },
+
         username: {
             type: DataTypes.STRING,
             allowNull: false,
