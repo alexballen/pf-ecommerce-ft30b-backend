@@ -59,8 +59,9 @@ module.exports = (sequelize) => {
             defaultValue: false
         }
     }, {
-        timestamp: true,
+        timestamps: true,
         createdAt: 'unitedAt',
-        updatedAt: 'modifyAt'
+        updatedAt: 'modifyAt',
+        paranoid: true
     })
 }
