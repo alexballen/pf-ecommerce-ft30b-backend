@@ -1,3 +1,4 @@
+
 const { User, Review, Cart, Photo, conn } = require('../db.js')
 const {Op} = require('sequelize')
 
@@ -40,42 +41,37 @@ async function createNewUser(req, res) {
     }
 }
 
-
 async function loginUser(req, res) {
-    let { email, password } = req.body
-    try {
-        let userProfile = await User.findOne({
-            where: {
-                [Op.or]: [
-                    {
-                        email,
-                        password
-                    },
-                    {
-                        username: email,
-                        password
-                    }
-                ]
-            },
-            include: {all: true, nested: true}
-        })
-        if (!userProfile || userProfile.length === 0) {
-            return res.status(404).json({
-                msg: 'No encontramos a nadie que se llame así, quizá exista, pero no está aquí'
-            })
-        }
-        res.status(200).send(userProfile)
-    } catch (error) {
-        res.status(500).json({
-            err: 'Algo salió terriblemente mal, estamos trabajando en ello',
-            description: error
-        })
+  let { email, password } = req.body;
+  try {
+    let userProfile = await User.findOne({
+      where: {
+        [Op.or]: [
+          {
+            email,
+            password,
+          },
+          {
+            username: email,
+            password,
+          },
+        ],
+      },
+      include: { all: true, nested: true },
+    });
+    if (!userProfile || userProfile.length === 0) {
+      return res.status(404).json({
+        msg: "No encontramos a nadie que se llame así, quizá exista, pero no está aquí",
+      });
     }
+    res.status(200).send(userProfile);
+  } catch (error) {
+    res.status(500).json({
+      err: "Algo salió terriblemente mal, estamos trabajando en ello",
+      description: error,
+    });
+  }
 }
-
-
-
-
 
 async function updateUserData(req, res) {
     let { userId } = req.params
@@ -131,8 +127,53 @@ async function deleteUser(req, res) {
             description: error
         })
     }
+  } catch (error) {
+    res.status(500).json({
+      err: "Algo salió terriblemente mal, estamos trabajando en ello",
+      description: error,
+    });
+  }
 }
 
+async function userSoftDelete(req, res) {
+  const { userId } = req.params;
+  const { restore } = req.query;
+
+  try {
+    if (restore) {
+      await User.restore({
+        where: {
+          id: userId,
+        },
+      });
+      return res.status(200).json({ msg: "Usuario devuelta en el mapa!" });
+    }
+    const userSoftDelete = User.findOne({
+      where: {
+        id: userId,
+      },
+    });
+    if (!userSoftDelete) {
+      return res
+        .status(404)
+        .json({
+          msg: "No hay usuario que coincida con esos valores, chequear Id enviado",
+        });
+    } else {
+      User.destroy({
+        where: {
+          id: userId,
+        },
+      });
+      return res.status(200).json({ msg: "Usuario escondido con exito!" });
+    }
+  } catch (error) {
+    res.status(500).json({
+      err: "Algo salió terriblemente mal, estamos trabajando en ello",
+      description: error,
+    });
+  }
+}
 
 const getUsers = async (req, res) => {
     try {
@@ -154,9 +195,11 @@ const getUsers = async (req, res) => {
 }
 
 module.exports = {
+
     createNewUser,
     loginUser,
     updateUserData,
     deleteUser,
-    getUsers
+    getUsers,
+    userSoftDelete,
 }
