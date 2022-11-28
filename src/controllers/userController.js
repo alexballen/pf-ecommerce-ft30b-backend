@@ -206,13 +206,16 @@ async function addToFavorites(req, res) {
                 id: productId
             }
         })
-        const newFavorite = await Favorite.findOne({
+        const [newFavorite, created] = await Favorite.findOrCreate({
             where: {
                 userId: userId
-            },
+          },
+          defaults: {
+            userId: userId
+          },
             include: Product
         })
-        await newFavorite.addProduct(queryProduct)
+        await newFavorite.addProducts(queryProduct)
         res.status(201).json({
             msg: '!Un nuevo favorito! ¿Qué? ¿Qué querias? ¿jugo de uva?'
         })
