@@ -4,32 +4,30 @@ const fs = require('fs');
 const path = require('path');
 const Knex = require('knex')
 const {
-  DB_HOST, DB_NAME, DB_PASSWORD, DB_USER, DATABASE_URL, NODE_ENV
+  DB_HOST, DB_NAME, DB_PASSWORD, DB_USER, DATABASE_URL, 
 } = process.env;
 
 
 
 
-const sequelize = NODE_ENV === 'production' ? 
-  new Sequelize({
-  protocol: 'postgres',
-  dialect: 'postgres',
-  username: DB_USER, 
-  password: DB_PASSWORD,
-  host: DB_HOST,
-  database: DB_NAME,
-  dialectOptions: {
-    ssl: false
-  },
-
-}): new Sequelize(DATABASE_URL,{
-  protocol: 'postgres',
-  dialect: 'postgres',
-  dialectOptions: {
-    ssl: false
-  },
-});
-
+const sequelize = 
+  // new Sequelize({
+  // protocol: 'postgres',
+  // dialect: 'postgres',
+  // username: DB_USER, 
+  // password: DB_PASSWORD,
+  // host: DB_HOST,
+  // database: DB_NAME,
+  // dialectOptions: {
+  //   ssl: false
+  // },
+  new Sequelize(DATABASE_URL,{
+    protocol: 'postgres',
+    dialect: 'postgres',
+    dialectOptions: {
+      ssl: false
+    },
+  });
 
 
 const basename = path.basename(__filename);
