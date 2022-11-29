@@ -8,11 +8,12 @@ const {
   deleteProduct,
   updateProduct,
   addNewReview,
+  buyproduct,
 } = require("../controllers/productController.js");
 
 const productRoute = Router();
 
-
+productRoute.post("/:id", buyproduct);
 productRoute.get("/", getAllProducts);
 productRoute.post("/", createNewProduct);
 productRoute.get("/brands", getBrands);

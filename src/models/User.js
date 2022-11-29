@@ -45,6 +45,7 @@ module.exports = (sequelize) => {
             defaultValue: false,
 
         },
+        
         // city: {
         //     type: DataTypes.STRING,
         //     allowNull: true,

@@ -1,4 +1,5 @@
 const { Sequelize } = require("sequelize");
+const mercadopago = require("mercadopago");
 const {
   conn,
   Product,
@@ -22,9 +23,9 @@ const getAllProducts = async (req, res) => {
     res.status(200).send(queryProducts);
   } catch (error) {
     res.status(500).json({
-        err: 'Algo salió terriblemente mal, estamos trabajando en ello',
-        description: error
-    })
+      err: "Algo salió terriblemente mal, estamos trabajando en ello",
+      description: error,
+    });
   }
 };
 
@@ -43,9 +44,9 @@ const getproduct = async (req, res) => {
     res.status(200).json(product);
   } catch (error) {
     res.status(500).json({
-        err: 'Algo salió terriblemente mal, estamos trabajando en ello',
-        description: error
-    })
+      err: "Algo salió terriblemente mal, estamos trabajando en ello",
+      description: error,
+    });
   }
 };
 
@@ -93,12 +94,12 @@ async function createNewProduct(req, res) {
 
     await newProduct.setBrand(queryBrand, { transaction });
 
-    let categoriesArray = []
+    let categoriesArray = [];
 
-    if (typeof categories === 'string') {
-      categoriesArray.push(categories)
+    if (typeof categories === "string") {
+      categoriesArray.push(categories);
     } else {
-      categories.map(c => categoriesArray.push(c))
+      categories.map((c) => categoriesArray.push(c));
     }
 
     let queryCategories = await Promise.all(
@@ -128,9 +129,9 @@ async function createNewProduct(req, res) {
   } catch (error) {
     await transaction.rollback();
     res.status(500).json({
-        err: 'Algo salió terriblemente mal, estamos trabajando en ello',
-        description: error
-    })
+      err: "Algo salió terriblemente mal, estamos trabajando en ello",
+      description: error,
+    });
   }
 }
 
@@ -145,9 +146,9 @@ const getCategories = async (req, res) => {
     res.status(200).send(allCategories);
   } catch (error) {
     res.status(500).json({
-        err: 'Algo salió terriblemente mal, estamos trabajando en ello',
-        description: error
-    })
+      err: "Algo salió terriblemente mal, estamos trabajando en ello",
+      description: error,
+    });
   }
 };
 
@@ -162,9 +163,9 @@ const getBrands = async (req, res) => {
     res.status(200).send(allBrands);
   } catch (error) {
     res.status(500).json({
-        err: 'Algo salió terriblemente mal, estamos trabajando en ello',
-        description: error
-    })
+      err: "Algo salió terriblemente mal, estamos trabajando en ello",
+      description: error,
+    });
   }
 };
 
@@ -182,15 +183,22 @@ const deleteProduct = async (req, res) => {
         msg: "Llamamos a Scotland Yard, pero ni ellos encontraon lo que buscas ",
       });
     }
+
+    const queryPhoto = await Photo.findOne({
+      where: {
+        productId: id,
+      },
+    });
+    await queryPhoto.destroy();
     await queryProduct.destroy();
     res.status(200).json({
       msg: "Se fue, ¡Kaboom!, ya no existe más",
     });
   } catch (error) {
     res.status(500).json({
-        err: 'Algo salió terriblemente mal, estamos trabajando en ello',
-        description: error
-    })
+      err: "Algo salió terriblemente mal, estamos trabajando en ello",
+      description: error,
+    });
   }
 };
 
@@ -213,9 +221,9 @@ const updateProduct = async (req, res) => {
     res.status(201).send(updatedProduct);
   } catch (error) {
     res.status(500).json({
-        err: 'Algo salió terriblemente mal, estamos trabajando en ello',
-        description: error
-    })
+      err: "Algo salió terriblemente mal, estamos trabajando en ello",
+      description: error,
+    });
   }
 };
 
@@ -243,9 +251,42 @@ const addNewReview = async (req, res) => {
     res.status(201).send(reviewedProduct);
   } catch (error) {
     res.status(500).json({
-        err: 'Algo salió terriblemente mal, estamos trabajando en ello',
-        description: error
-    })
+      err: "Algo salió terriblemente mal, estamos trabajando en ello",
+      description: error,
+    });
+  }
+};
+const buyproduct = async (req, res) => {
+  const { id } = req.params;
+  const { quantity } = req.body;
+
+  try {
+    const product = await Product.findByPk(id);
+    if (product.length === 0) {
+      return res.status(404).json({
+        msg: "No se encontró el producto que estas buscando... seguramente era una capa",
+      });
+    }
+
+    let preference = {
+      items: [
+        {
+          id: product.id,
+          title: product.name,
+          unit_price: product.unitPrice,
+          quantity: quantity,
+        },
+      ],
+    };
+
+    mercadopago.preferences.create(preference).then(function (response) {
+      res.status(200).json(response.body.sandbox_init_point);
+    });
+  } catch (error) {
+    res.status(500).json({
+      err: "Algo salió terriblemente mal, estamos trabajando en ello",
+      description: error,
+    });
   }
 };
 
@@ -258,4 +299,5 @@ module.exports = {
   updateProduct,
   addNewReview,
   getproduct,
+  buyproduct,
 };

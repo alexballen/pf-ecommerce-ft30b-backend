@@ -1,5 +1,5 @@
 
-const { User, Review, Cart, Photo, conn } = require('../db.js')
+const { User, Photo, conn, Favorite, Product } = require('../db.js')
 const {Op} = require('sequelize')
 
 async function createNewUser(user) {
@@ -19,6 +19,7 @@ async function createNewUser(user) {
         
 
         await newUser.createCart()
+        await newUser.createFavorite()
         await newUser.createPhoto({ url: picture, transaction })
         await transaction.commit()
 
@@ -89,7 +90,7 @@ async function updateUserData(req, res) {
             firstName,
             lastName,
             email,
-            
+            password,
             username,
             phoneNumber,
             // country,
@@ -114,11 +115,18 @@ async function deleteUser(req, res) {
                 id: userId
             }
         })
+
+        const queryPhoto = await Photo.findOne({
+            where: {
+                userId: userId
+            }
+        })
         
         if(!userToDelete || userToDelete.length === 0) {
             return res.status(404).json({msg: '¡Dejad al usuario tranquilo!'})
         } else {
             userToDelete.destroy()
+            queryPhoto.destroy()
             return res.status(200).json({msg: '¡Avada kedabra!..... Oops!'})
         }
 
@@ -128,12 +136,7 @@ async function deleteUser(req, res) {
             description: error
         })
     }
-  } catch (error) {
-    res.status(500).json({
-      err: "Algo salió terriblemente mal, estamos trabajando en ello",
-      description: error,
-    });
-  }
+  
 }
 
 async function userSoftDelete(req, res) {
@@ -195,6 +198,73 @@ const getUsers = async (req, res) => {
     }
 }
 
+async function addToFavorites(req, res) {
+    const { userId, productId } = req.body
+    
+    try {
+        const queryProduct = await Product.findOne({
+            where: {
+                id: productId
+            }
+        })
+        const [newFavorite, created] = await Favorite.findOrCreate({
+            where: {
+                userId: userId
+          },
+          defaults: {
+            userId: userId
+          },
+            include: Product
+        })
+        await newFavorite.addProducts(queryProduct)
+        res.status(201).json({
+            msg: '!Un nuevo favorito! ¿Qué? ¿Qué querias? ¿jugo de uva?'
+        })
+    } catch (error) {
+        res.status(500).json({
+            err: 'Algo salió terriblemente mal, estamos trabajando en ello',
+            description: error
+        })
+    }
+}
+
+
+async function removeFromFavorites(req, res) {
+    const { userId, productId } = req.body
+    try {
+        const queryUser = await User.findOne({
+            where: {
+                id: userId
+            },
+            include: Favorite
+        })
+        
+        const queryProduct = await Product.findOne({
+            where: {
+                id: productId
+            }
+        })
+        
+        const userFavorites = await Favorite.findOne({
+            where: {
+               id:  queryUser.favorite.id
+           }
+        })
+        
+        await userFavorites.removeProducts(queryProduct)
+        res.status(200).json({
+            msg: '¡Booo Wendy boo'
+        })
+    } catch (error) {
+        res.status(500).json({
+            err: 'Algo salió terriblemente mal, estamos trabajando en ello',
+            description: error
+        })
+    }
+}
+
+
+
 module.exports = {
 
     createNewUser,
@@ -203,4 +273,6 @@ module.exports = {
     deleteUser,
     getUsers,
     userSoftDelete,
+    addToFavorites,
+    removeFromFavorites,
 }
