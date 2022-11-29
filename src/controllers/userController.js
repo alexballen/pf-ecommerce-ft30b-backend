@@ -65,7 +65,7 @@ const userLogin = async (req, res, next) => {
             }
             const response = await User.create(User)
 
-            const cart = await CreateCart(response._id)
+            const cart = await Cart.create(response._id)
             console.log('create carrito: '+ cart)
 
             await EmeilerConfig(User.email, User.fullName)
@@ -83,53 +83,6 @@ const userLogin = async (req, res, next) => {
     } catch (error) {
         res.status(500).json({
             err: 'Algo salió terriblemente mal, estamos trabajando en ello',
-            description: error
-        })
-    }
-}
-
-async function toggleBan(req, res) {
-    let { userId } = req.query
-    
-    try {
-        let queryUser = await User.findOne({
-            where: {
-                id: userId
-            }
-        })
-
-        const updatedUser = await queryUser.update({
-            isBan: !queryUser.isBan,
-        })
-
-        res.status(200).send(updatedUser)
-    } catch (error) {
-         res.status(500).json({
-             err: 'Something went wrong please try again later',
-             description: error
-         })
-    }
-}
-
-
-async function toggleAdmin(req, res) {
-    let { userId } = req.query
-
-    try {
-        let queryUser = await User.findOne({
-            where: {
-                id: userId
-            }
-        })
-
-        const updatedUser = await queryUser.update({
-            isAdmin: !queryUser.isAdmin
-        })
-
-        res.status(200).send(updatedUser)
-    } catch (error) {
-        res.status(500).json({
-            err: 'Something went wrong please try again later',
             description: error
         })
     }
@@ -215,8 +168,6 @@ const getUsers = async (req, res) => {
 module.exports = {
     createNewUser,
     userLogin,
-    toggleBan,
-    toggleAdmin,
     updateUserData,
     deleteUser,
     getUsers
