@@ -1,86 +1,69 @@
 const { User, Review, Cart, Photo, conn } = require('../db.js')
 const {Op} = require('sequelize')
 
-async function createNewUser(req, res) {
+async function createNewUser(user) {
+
     let {
-        firstName,
-        lastName,
         email,
-        phoneNumber,
-        password,
-        username,
-        // country,
-        // city,
-        profileImage
-    } = req.body
+        nickname,
+        picture
+    } = user
     const transaction = await conn.transaction()
     try {
         let newUser = await User.create({
-            firstName,
-            lastName,
-            email,
-            phoneNumber,
-            username,
-            // country,
-            // city
+            email:email,
+            username:nickname,
         })
         
         
 
         await newUser.createCart()
-        await newUser.createPhoto({ url: profileImage, transaction })
+        await newUser.createPhoto({ url: picture, transaction })
         await transaction.commit()
-        res.status(201).send(newUser)
+
+
+        const Us = await User.findOne({where: {
+            id:newUser.id,  
+        },
+        include: { all: true, nested: true }
+        }
+        )
+
+        
+        return Us
     } catch (error) {
-        res.status(500).json({
-            err: 'Algo salió terriblemente mal, estamos trabajando en ello',
-            description: error
-        })
+        return error
     }
 }
 
 
 const userLogin = async (req, res, next) => {
-    const {name, picture }=req.body
-    // console.log(req.body)
+    console.log("This is the body:", req.body)
+    const {email}=req.body
+   
     try {
-        const { email } = req.params
-
+      
         const Us = await User.findOne({where: {
-            [Op.or]: [
-                {
-                    email,
+                    email:email,  
                 },
-                {
-                    username: email,
-                }]}})
+                include: { all: true, nested: true }
+                }
+                )
 
         if(!Us){
-            const User = {
-                fullName: name,
-                email: email,
-                image: picture,
-                active: true,
-                isAdmin: false,
-            }
-            const response = await User.create(User)
-
-            const cart = await Cart.create(response._id)
-            console.log('create carrito: '+ cart)
-
-            await EmeilerConfig(User.email, User.fullName)
-            
+            const response = await createNewUser(req.body)
+       
             res.status(200).send({
-                msg:"User created succesfully",
-                data:User,
-                db_response: response        
+                msg:"Usuario creado exitosamente",
+                data: await response        
             })
-        } else if (Us.active === false){
-            res.status(403).send({msg: "User Blocked"})
+        } else if (Us.isBan === true){
+            res.status(403).send({msg: "Usuario blockeado"})
         }
-        else{res.status(200).send(Us)}
+        else{res.status(200).send({data:Us})}
 
     } catch (error) {
+        console.log(error)
         res.status(500).json({
             err: 'Algo salió terriblemente mal, estamos trabajando en ello',
             description: error

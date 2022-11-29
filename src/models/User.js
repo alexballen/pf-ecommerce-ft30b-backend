@@ -38,7 +38,6 @@ module.exports = (sequelize) => {
 
         username: {
             type: DataTypes.STRING,
-            allowNull: false,
             unique: true,
         },
         isAdmin: {

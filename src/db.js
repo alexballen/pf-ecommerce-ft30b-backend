@@ -69,7 +69,7 @@ Category.belongsToMany(Product, ({through: 'Product_Category'}))
 
 User.hasOne(Address)
 Address.belongsTo(User, { targetKey: 'username', foreignKey: 'owner' })
-User.hasOne(Photo, {sourceKey: 'username', foreignKey:'user'})
+User.hasOne(Photo)
 
 User.hasMany(Review, {sourceKey: 'username', foreignKey: 'author'})
 Review.belongsTo(User, {targetKey: 'username', foreignKey: 'author'})
