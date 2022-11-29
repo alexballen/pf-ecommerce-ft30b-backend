@@ -2,39 +2,71 @@
 const { User, Photo, conn, Favorite, Product } = require('../db.js')
 const {Op} = require('sequelize')
 
-async function createNewUser(req, res) {
+async function createNewUser(user) {
+
     let {
-        firstName,
-        lastName,
         email,
-        phoneNumber,
-        password,
-        username,
-        // country,
-        // city,
-        profileImage
-    } = req.body
+        nickname,
+        picture
+    } = user
     const transaction = await conn.transaction()
     try {
         let newUser = await User.create({
-            firstName,
-            lastName,
-            email,
-            phoneNumber,
-            password,
-            username,
-            // country,
-            // city
+            email:email,
+            username:nickname,
         })
         
         
 
         await newUser.createCart()
         await newUser.createFavorite()
-        await newUser.createPhoto({ url: profileImage, transaction })
+        await newUser.createPhoto({ url: picture, transaction })
         await transaction.commit()
-        res.status(201).send(newUser)
+
+
+        const Us = await User.findOne({where: {
+            id:newUser.id,  
+        },
+        include: { all: true, nested: true }
+        }
+        )
+
+        
+        return Us
     } catch (error) {
+        return error
+    }
+}
+
+
+
+const userLogin = async (req, res, next) => {
+    console.log("This is the body:", req.body)
+    const {email}=req.body
+   
+    try {
+      
+        const Us = await User.findOne({where: {
+                    email:email,  
+                },
+                include: { all: true, nested: true }
+                }
+                )
+
+        if(!Us){
+            const response = await createNewUser(req.body)
+       
+            res.status(200).send({
+                msg:"Usuario creado exitosamente",
+                data: await response        
+            })
+        } else if (Us.isBan === true){
+            res.status(403).send({msg: "Usuario blockeado"})
+        }
+        else{res.status(200).send({data:Us})}
+
+    } catch (error) {
+        console.log(error)
         res.status(500).json({
             err: 'Algo salió terriblemente mal, estamos trabajando en ello',
             description: error
@@ -42,37 +74,6 @@ async function createNewUser(req, res) {
     }
 }
 
-async function loginUser(req, res) {
-  let { email, password } = req.body;
-  try {
-    let userProfile = await User.findOne({
-      where: {
-        [Op.or]: [
-          {
-            email,
-            password,
-          },
-          {
-            username: email,
-            password,
-          },
-        ],
-      },
-      include: { all: true, nested: true },
-    });
-    if (!userProfile || userProfile.length === 0) {
-      return res.status(404).json({
-        msg: "No encontramos a nadie que se llame así, quizá exista, pero no está aquí",
-      });
-    }
-    res.status(200).send(userProfile);
-  } catch (error) {
-    res.status(500).json({
-      err: "Algo salió terriblemente mal, estamos trabajando en ello",
-      description: error,
-    });
-  }
-}
 
 async function updateUserData(req, res) {
     let { userId } = req.params
@@ -267,7 +268,7 @@ async function removeFromFavorites(req, res) {
 module.exports = {
 
     createNewUser,
-    loginUser,
+    userLogin,
     updateUserData,
     deleteUser,
     getUsers,
