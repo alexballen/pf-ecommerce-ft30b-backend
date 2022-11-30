@@ -2,14 +2,34 @@ require('dotenv').config();
 const { Sequelize } = require('sequelize');
 const fs = require('fs');
 const path = require('path');
+const Knex = require('knex')
 const {
-  DB_USER, DB_PASSWORD, DB_HOST,
+  DB_HOST, DB_NAME, DB_PASSWORD, DB_USER, DATABASE_URL, 
 } = process.env;
 
-const sequelize = new Sequelize(`postgres://${DB_USER}:${DB_PASSWORD}@${DB_HOST}/countries`, {
-  logging: false, // set to console.log to see the raw SQL queries
-  native: false, // lets Sequelize know we can use pg-native for ~30% more speed
-});
+
+
+
+const sequelize = 
+  // new Sequelize({
+  // protocol: 'postgres',
+  // dialect: 'postgres',
+  // username: DB_USER, 
+  // password: DB_PASSWORD,
+  // host: DB_HOST,
+  // database: DB_NAME,
+  // dialectOptions: {
+  //   ssl: false
+  // },
+  new Sequelize(DATABASE_URL,{
+    protocol: 'postgres',
+    dialect: 'postgres',
+    dialectOptions: {
+      ssl: false
+    },
+  });
+
+
 const basename = path.basename(__filename);
 
 const modelDefiners = [];
@@ -30,10 +50,40 @@ sequelize.models = Object.fromEntries(capsEntries);
 
 // En sequelize.models están todos los modelos importados como propiedades
 // Para relacionarlos hacemos un destructuring
-const { Pokemon } = sequelize.models;
+const { Product, User, Photo, Review, Brand, Category, Address, Cart, Favorite} = sequelize.models;
 
 // Aca vendrian las relaciones
 // Product.hasMany(Reviews);
+
+Product.hasMany(Review)
+Product.hasMany(Photo)
+
+Photo.belongsTo(Product)
+
+
+Product.belongsTo(Brand)
+Brand.hasMany(Product)
+
+Product.belongsToMany(Category, ({ through: 'Product_Category' }))
+Category.belongsToMany(Product, ({through: 'Product_Category'}))
+
+User.hasOne(Address)
+Address.belongsTo(User)
+User.hasOne(Photo)
+
+User.hasMany(Review)
+Review.belongsTo(User)
+
+User.hasOne(Cart)
+Cart.belongsTo(User)
+Cart.hasMany(Product)
+
+User.hasOne(Favorite)
+Favorite.belongsTo(User)
+Product.belongsToMany(Favorite, { through: 'Product_Favorite' })
+Favorite.belongsToMany(Product, { through: 'Product_Favorite' })
+
+
 
 module.exports = {
   ...sequelize.models, // para poder importar los modelos así: const { Product, User } = require('./db.js');
