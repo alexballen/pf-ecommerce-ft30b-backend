@@ -10,8 +10,7 @@ const {
 
 
 
-const sequelize = NODE_ENV === 'production' ?
-  new Sequelize({
+const sequelize = new Sequelize({
     protocol: 'postgres',
     dialect: 'postgres',
     username: DB_USER,
@@ -21,13 +20,6 @@ const sequelize = NODE_ENV === 'production' ?
     dialectOptions: {
       ssl: false
     }
-  }) :
-  new Sequelize(DATABASE_URL,{
-    protocol: 'postgres',
-    dialect: 'postgres',
-    dialectOptions: {
-      ssl: false
-    },
   })
 
 const basename = path.basename(__filename);
