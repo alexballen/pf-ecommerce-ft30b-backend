@@ -237,7 +237,8 @@ const getFavorites = async (req, res) =>
         const favorites = await Favorite.findOne({
             where: {
                 userId
-            }
+            },
+            include: [Product]
         });
         res.status(200).json(favorites);
     } catch (error)
