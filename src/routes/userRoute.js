@@ -1,6 +1,6 @@
 const { Router } = require('express')
-const { removeFromCart } = require('../controllers/purchaseControluserLer.js')
-const { createNew, updateUserData, deleteUser, getUsers, getUsers, loginUser, addToFavorites, removeFromFavorites } = require('../controllers/userController.js')
+
+const { createNewUser, updateUserData, deleteUser, getUsers, userLogin, addToFavorites, removeFromFavorites, userSoftDelete } = require('../controllers/userController.js')
 
 
 

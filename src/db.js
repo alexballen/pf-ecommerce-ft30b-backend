@@ -71,8 +71,8 @@ User.hasOne(Address)
 Address.belongsTo(User)
 User.hasOne(Photo)
 
-User.hasMany(Review, {sourceKey: 'username', foreignKey: 'author'})
-Review.belongsTo(User, {targetKey: 'username', foreignKey: 'author'})
+User.hasMany(Review)
+Review.belongsTo(User)
 
 User.hasOne(Cart)
 Cart.belongsTo(User)
