@@ -7,6 +7,8 @@ async function createNewUser(user)
 
     let {
         email,
+        given_name,
+        family_name,
         nickname,
         picture
     } = user
@@ -16,6 +18,8 @@ async function createNewUser(user)
         let newUser = await User.create({
             email: email,
             username: nickname,
+            firstName: given_name,
+            lastName: family_name
         })
 
 
