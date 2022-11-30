@@ -84,7 +84,41 @@ const removeFromCart = async (req, res) => {
         })
     }
 
-} 
+}
+
+const buyproduct = async (req, res) => {
+    const { id } = req.params
+    const { quantity } = req.body
+
+    try {
+        const product = await Product.findByPk(id)
+        if (product.length === 0) {
+            return res.status(404).json({
+                msg: 'No se encontró el producto que estas buscando... seguramente era una capa'
+            })
+        }
+
+        let preference = {
+            items: [
+                {
+                    id: product.id,
+                    title: product.name,
+                    unit_price: product.unitPrice,
+                    quantity: quantity
+                }
+            ]
+        }
+
+        mercadopago.preferences.create(preference).then(function (response) {
+            res.status(200).json(response.body.sandbox_init_point)
+        })
+    } catch (error) {
+        res.status(500).json({
+            err: 'Algo salió terriblemente mal, estamos trabajando en ello',
+            description: error
+        })
+    }
+}
 
 const deleteAllCart = async (req, res) => {
     let { userId } = req.body
@@ -121,5 +155,6 @@ module.exports = {
     addProductToCart,
     getCart,
     removeFromCart,
-    deleteAllCart
+    deleteAllCart,
+    buyproduct
 }

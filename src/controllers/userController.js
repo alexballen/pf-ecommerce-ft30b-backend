@@ -274,5 +274,6 @@ module.exports = {
     getUsers,
     userSoftDelete,
     addToFavorites,
-    removeFromFavorites,
+  removeFromFavorites,
+    
 }
