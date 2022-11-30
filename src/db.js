@@ -10,7 +10,7 @@ const {
 
 
 
-const sequelize = NODE_ENV === 'production' ?
+const sequelize = process.env.NODE_ENV === 'production' ?
   new Sequelize({
     protocol: 'postgres',
     dialect: 'postgres',

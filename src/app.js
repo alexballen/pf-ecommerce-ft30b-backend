@@ -12,8 +12,6 @@ const server = express();
 
 server.name = "API";
 
-require("./db.js");
-
 mercadopago.configure({
   access_token: MPAGOTOKEN,
 });
