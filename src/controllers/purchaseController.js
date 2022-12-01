@@ -96,6 +96,13 @@ const buyproduct = async (req, res) => {
     }
 
     let preference = {
+      // payer: {
+      //   phone: { area_code: '', number: '' },
+      //   address: { zip_code: '', street_name: '', street_number: null },
+      //   email: '',
+      //   identification: { number: '', type: '' },
+      //   name: '',
+      // },
       items: [
         {
           id: product.id,
@@ -104,10 +111,54 @@ const buyproduct = async (req, res) => {
           quantity: quantity,
         },
       ],
+      // notification_url: null,
+      back_urls: {
+        // success: "http://localhost:3000/",
+        // failure: "http://www.failure.com",
+        // pending: "http://www.pending.com",
+      },
     };
 
     mercadopago.preferences.create(preference).then(function (response) {
-      res.status(200).json(response.body.sandbox_init_point);
+      global.id = response.body.id;
+      console.log(response.body);
+      res.status(200).json(response.body.init_point);
+    });
+  } catch (error) {
+    res.status(500).json({
+      err: "Algo salió terriblemente mal, estamos trabajando en ello",
+      description: error,
+    });
+  }
+};
+
+const buyall = async (req, res) => {
+  let { userId } = req.body;
+
+  try {
+    const userCart = await Cart.findOne({
+      where: {
+        userId: userId,
+      },
+      include: Product,
+    });
+    const cart = userCart.products;
+
+    var preference = {
+      items: [],
+    };
+
+    for (let e of cart) {
+      preference.items.push({
+        id: e.id,
+        title: e.name,
+        unit_price: e.unitPrice,
+        quantity: parseInt(e.quantity),
+      });
+    }
+
+    mercadopago.preferences.create(preference).then(function (response) {
+      res.status(200).json(response.body.init_point);
     });
   } catch (error) {
     res.status(500).json({
@@ -146,4 +197,5 @@ module.exports = {
   removeFromCart,
   deleteAllCart,
   buyproduct,
+  buyall,
 };
