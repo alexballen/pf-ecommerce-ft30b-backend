@@ -1,4 +1,4 @@
-const { Product } = require('../db')
+const { Product, Country, City } = require('../db')
 
 
 async function toggleProductAsFeatured(req, res) {
@@ -82,8 +82,58 @@ async function toggleAdmin(req, res) {
 }
 
 
+async function expansionSending(req, res) {
+    const { country, city } = req.body
+    try {
+        const [queryCountry, createdcountry] = await Country.findOrCreate({
+            where: {
+                name: country
+            },
+            defaults: {
+                name: country
+            },
+        })
+        
+
+        const newCity = await City.create({
+            name: city
+        })
+       await queryCountry.addCities(newCity)
+        res.status(201).json({
+            mgs: 'Te estas expandiendo, como la chava esa del chicle en la fabrica de Willy Wonka',
+        })
+    } catch (error) {
+        res.status(500).json({
+            err: 'Algo salió terriblemente mal, estamos trabajando en ello',
+            description: error
+        })
+    }
+}
+
+
+async function getZones(req, res) {
+    try {
+        const allZones = await Country.findAll({ include: City })
+
+        if (allZones.length === 0) {
+            return res.status(404).json({
+                msg: 'Aún no envias a ningún lado, ¿Sólo le envias a tus padres o qué?'
+            })
+        }
+        res.status(200).send(allZones)
+    } catch (error) {
+        res.status(500).json({
+            err: 'Algo salió terriblemente mal, estamos trabajando en ello',
+            description: error
+        })
+    }
+}
+
+
 module.exports = {
     toggleProductAsFeatured,
     toggleAdmin,
-    toggleBan
+    toggleBan,
+    expansionSending,
+    getZones
 }

@@ -4,10 +4,3 @@ env: standard
 handlers:
 - url: /.*
   script: auto
-
-env_variables: 
-  DB_USER: 'grupo19'
-  DB_PASSWORD: 'eQ@>z#lQ<CSQ1@/x'
-  DB_NAME: 'pf-ecommerce'
-  DB_HOST: '/cloudsql/pueba3:us-central1:pf-ecommerce-database/'
-  DATABASE_URL: 'postgres://betubtxz:gd3CyKntwjSH7geyLOKzNGL_zUsge7A_@otto.db.elephantsql.com/betubtxz'
