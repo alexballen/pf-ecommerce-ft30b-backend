@@ -29,7 +29,7 @@ const addCountry = async (req, res) =>
             where: { name },
             transaction
         });
-        cities.map(async city => await newCountry.createCity({ name: city.name }, { transaction }));
+        await Promise.all(cities.map(async city => await newCountry.createCity({ name: city.name }, { transaction })));
 
         await transaction.commit();
 
