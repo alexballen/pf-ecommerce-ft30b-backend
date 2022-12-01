@@ -1,6 +1,7 @@
 const { DataTypes } = require('sequelize')
 
-module.exports = (sequelize) => {
+module.exports = (sequelize) =>
+{
     sequelize.define("user", {
         id: {
             type: DataTypes.UUID,
@@ -11,15 +12,16 @@ module.exports = (sequelize) => {
         },
         firstName: {
             type: DataTypes.STRING,
-            
+
         },
         lastName: {
             type: DataTypes.STRING,
-            
+
         },
         fullName: {
             type: DataTypes.VIRTUAL,
-            get() {
+            get()
+            {
                 return `${this.firstName} ${this.lastName}`
             }
         },
@@ -33,9 +35,8 @@ module.exports = (sequelize) => {
         },
         phoneNumber: {
             type: DataTypes.STRING,
-           
-        },
 
+        },
         username: {
             type: DataTypes.STRING,
             unique: true,
@@ -43,17 +44,7 @@ module.exports = (sequelize) => {
         isAdmin: {
             type: DataTypes.BOOLEAN,
             defaultValue: false,
-
         },
-        
-        // city: {
-        //     type: DataTypes.STRING,
-        //     allowNull: true,
-        // },
-        // country: {
-        //     type: DataTypes.STRING,
-        //     allowNull: true
-        // },
         isBan: {
             type: DataTypes.BOOLEAN,
             defaultValue: false
