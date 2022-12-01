@@ -1,5 +1,5 @@
 
-const { User, Photo, conn, Favorite, Product } = require('../db.js')
+const { User, Photo, conn, Favorite, Product, Brand } = require('../db.js')
 const { Op } = require('sequelize')
 
 async function createNewUser(user)
@@ -238,7 +238,10 @@ const getFavorites = async (req, res) =>
             where: {
                 userId
             },
-            include: [Product]
+            include: [{
+                model: Product,
+                include: [Photo, Brand]
+            }]
         });
         res.status(200).json(favorites);
     } catch (error)
