@@ -1,10 +1,14 @@
 const { User, Review, Cart, Photo, conn } = require('../db.js')
 const {Op} = require('sequelize')
 
-async function createNewUser(req, res) {
+const { User, City, Photo, conn, Favorite, Product, Brand } = require('../db.js')
+const { Op } = require('sequelize')
+
+
+async function createNewUser(user)
+{
+
     let {
-        firstName,
-        lastName,
         email,
         phoneNumber,
         password,
@@ -29,7 +33,9 @@ async function createNewUser(req, res) {
         
 
         await newUser.createCart()
-        await newUser.createPhoto({ url: profileImage, transaction })
+        await newUser.createFavorite()
+        await newUser.createCompra()
+        await newUser.createPhoto({ url: picture, transaction })
         await transaction.commit()
         res.status(201).send(newUser)
     } catch (error) {
@@ -41,10 +47,16 @@ async function createNewUser(req, res) {
 }
 
 
-async function loginUser(req, res) {
-    let { email, password } = req.body
-    try {
-        let userProfile = await User.findOne({
+
+const userLogin = async (req, res, next) =>
+{
+    
+    const { email } = req.body
+
+    try
+    {
+
+        const Us = await User.findOne({
             where: {
                 [Op.or]: [
                     {
@@ -79,7 +91,7 @@ async function loginUser(req, res) {
 
 async function updateUserData(req, res) {
     let { userId } = req.params
-    let { firstName, lastName, email, password, username, phoneNumber } = req.body
+    let { firstName, lastName, email, password, username, phoneNumber, country, city, gender } = req.body
 
     try {
         let queryUser = await User.findOne({
@@ -95,9 +107,25 @@ async function updateUserData(req, res) {
             password,
             username,
             phoneNumber,
-            // country,
-            // city,
+            gender
         })
+
+        if (country !== '' || country !== null || country !== undefined) {
+            const userCountry = await Country.findOne({
+                where: {
+                    name: country
+                },
+                include: City
+            }) 
+            await updatedUser.setCountry(userCountry)
+            if (city !== '' || city !== null || city !== undefined) {
+                await userCountry.cities.forEach(c => {
+                    if (c.name === city) {
+                        return updatedUser.setCity(c)
+                    }
+                })
+            }
+        }
 
         res.status(200).send(updatedUser)
     } catch (error) {
@@ -108,7 +136,46 @@ async function updateUserData(req, res) {
     }
 }
 
-async function deleteUser(req, res) {
+const completeSignUp = async (req, res) =>
+{
+    let { userId } = req.params
+    let { phoneNumber, cityId } = req.body
+    const transaction = await conn.transaction();
+
+    try
+    {
+        let user = await User.findOne({
+            where: { id: userId },
+
+        });
+
+        let city = await City.findOne({
+            where: {
+                id: cityId
+            }
+        })
+
+        const updatedUser = await user.update({
+            phoneNumber
+        }, { transaction })
+
+        await user.setCityOfOrigin(city, { transaction });
+
+        await transaction.commit();
+
+        res.status(200).send(updatedUser)
+    } catch (error)
+    {
+        await transaction.rollback();
+        res.status(500).json({
+            err: 'Algo salió terriblemente mal, estamos trabajando en ello',
+            description: error
+        })
+    }
+}
+
+async function deleteUser(req, res)
+{
     const { userId } = req.params
 
     try {
@@ -138,5 +205,12 @@ module.exports = {
     createNewUser,
     loginUser,
     updateUserData,
-    deleteUser
+    deleteUser,
+    getUsers,
+    userSoftDelete,
+    getFavorites,
+    addToFavorites,
+    removeFromFavorites,
+    completeSignUp
+
 }
