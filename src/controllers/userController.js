@@ -92,7 +92,7 @@ const userLogin = async (req, res, next) =>
 async function updateUserData(req, res)
 {
     let { userId } = req.params
-    let { firstName, lastName, email, password, username, phoneNumber } = req.body
+    let { firstName, lastName, email, password, username, phoneNumber, country, city, gender } = req.body
 
     try
     {
@@ -109,13 +109,67 @@ async function updateUserData(req, res)
             password,
             username,
             phoneNumber,
-            // country,
-            // city,
+            gender
         })
+
+        if (country !== '' || country !== null || country !== undefined) {
+            const userCountry = await Country.findOne({
+                where: {
+                    name: country
+                },
+                include: City
+            }) 
+            await updatedUser.setCountry(userCountry)
+            if (city !== '' || city !== null || city !== undefined) {
+                await userCountry.cities.forEach(c => {
+                    if (c.name === city) {
+                        return updatedUser.setCity(c)
+                    }
+                })
+            }
+        }
 
         res.status(200).send(updatedUser)
     } catch (error)
     {
+        res.status(500).json({
+            err: 'Algo salió terriblemente mal, estamos trabajando en ello',
+            description: error
+        })
+    }
+}
+
+const completeSignUp = async (req, res) =>
+{
+    let { userId } = req.params
+    let { phoneNumber, cityId } = req.body
+    const transaction = await conn.transaction();
+
+    try
+    {
+        let user = await User.findOne({
+            where: { id: userId },
+
+        });
+
+        let city = await City.findOne({
+            where: {
+                id: cityId
+            }
+        })
+
+        const updatedUser = await user.update({
+            phoneNumber
+        }, { transaction })
+
+        await user.setCityOfOrigin(city, { transaction });
+
+        await transaction.commit();
+
+        res.status(200).send(updatedUser)
+    } catch (error)
+    {
+        await transaction.rollback();
         res.status(500).json({
             err: 'Algo salió terriblemente mal, estamos trabajando en ello',
             description: error
