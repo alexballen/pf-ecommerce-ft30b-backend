@@ -1,5 +1,5 @@
 const { Cart, User, Product } = require('../db')
-
+const mercadopago = require("mercadopago");
 
 const addProductToCart = async (req, res) => {
     let { userId, productId, qty } = req.body
