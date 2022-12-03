@@ -1,6 +1,7 @@
 
 const { User, Photo, conn, Favorite, Product } = require('../db.js')
 const {Op} = require('sequelize')
+const emailer = require('../emailer/registrationMail.js')
 
 async function createNewUser(user) {
 
@@ -55,7 +56,9 @@ const userLogin = async (req, res, next) => {
 
         if(!Us){
             const response = await createNewUser(req.body)
-       
+            
+            emailer.sendRegistrationMail(response)
+
             res.status(200).send({
                 msg:"Usuario creado exitosamente",
                 data: await response        
