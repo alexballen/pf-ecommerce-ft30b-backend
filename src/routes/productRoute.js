@@ -6,6 +6,7 @@ const {
   getCategories,
   getBrands,
   deleteProduct,
+  softDeleteProduct,
   updateProduct,
   addNewReview,
   
@@ -21,6 +22,7 @@ productRoute.get("/categories", getCategories);
 productRoute.put("/update", updateProduct);
 productRoute.get("/:id", getproduct);
 productRoute.delete("/:id", deleteProduct);
+productRoute.delete("/softDelete/:id", softDeleteProduct);
 productRoute.post("/:productId/reviews", addNewReview);
 
 module.exports = productRoute;

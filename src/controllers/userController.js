@@ -139,43 +139,6 @@ async function updateUserData(req, res)
     }
 }
 
-const completeSignUp = async (req, res) =>
-{
-    let { userId } = req.params
-    let { phoneNumber, cityId } = req.body
-    const transaction = await conn.transaction();
-
-    try
-    {
-        let user = await User.findOne({
-            where: { id: userId },
-
-        });
-
-        let city = await City.findOne({
-            where: {
-                id: cityId
-            }
-        })
-
-        const updatedUser = await user.update({
-            phoneNumber
-        }, { transaction })
-
-        await user.setCityOfOrigin(city, { transaction });
-
-        await transaction.commit();
-
-        res.status(200).send(updatedUser)
-    } catch (error)
-    {
-        await transaction.rollback();
-        res.status(500).json({
-            err: 'Algo salió terriblemente mal, estamos trabajando en ello',
-            description: error
-        })
-    }
-}
 
 const completeSignUp = async (req, res) =>
 {
@@ -238,8 +201,8 @@ async function deleteUser(req, res)
             return res.status(404).json({ msg: '¡Dejad al usuario tranquilo!' })
         } else
         {
-            userToDelete.destroy()
-            queryPhoto.destroy()
+            userToDelete.destroy({force: true})
+            queryPhoto.destroy({force: true})
             return res.status(200).json({ msg: '¡Avada kedabra!..... Oops!' })
         }
 
@@ -260,7 +223,7 @@ async function userSoftDelete(req, res)
 
     try
     {
-        if (restore)
+        if (restore == true)
         {
             await User.restore({
                 where: {
