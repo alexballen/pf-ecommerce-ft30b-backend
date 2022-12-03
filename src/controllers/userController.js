@@ -1,6 +1,7 @@
 
-const { User, City, Photo, conn, Favorite, Product, Brand } = require('../db.js')
+const { User, City, Photo, conn, Favorite, Product, Brand, Cart } = require('../db.js')
 const { Op } = require('sequelize')
+const { card_token } = require('mercadopago')
 
 async function createNewUser(user)
 {
@@ -177,43 +178,6 @@ const completeSignUp = async (req, res) =>
     }
 }
 
-const completeSignUp = async (req, res) =>
-{
-    let { userId } = req.params
-    let { phoneNumber, cityId } = req.body
-    const transaction = await conn.transaction();
-
-    try
-    {
-        let user = await User.findOne({
-            where: { id: userId },
-
-        });
-
-        let city = await City.findOne({
-            where: {
-                id: cityId
-            }
-        })
-
-        const updatedUser = await user.update({
-            phoneNumber
-        }, { transaction })
-
-        await user.setCityOfOrigin(city, { transaction });
-
-        await transaction.commit();
-
-        res.status(200).send(updatedUser)
-    } catch (error)
-    {
-        await transaction.rollback();
-        res.status(500).json({
-            err: 'Algo salió terriblemente mal, estamos trabajando en ello',
-            description: error
-        })
-    }
-}
 
 async function deleteUser(req, res)
 {
@@ -232,14 +196,26 @@ async function deleteUser(req, res)
                 userId: userId
             }
         })
+        const queryFavorite = await Favorite.findOne({
+            where: {
+                userId: userId
+            }
+        })
+        const queryCart = await Cart.findOne({
+            where: {
+                userId: userId
+            }
+        })
 
         if (!userToDelete || userToDelete.length === 0)
         {
             return res.status(404).json({ msg: '¡Dejad al usuario tranquilo!' })
         } else
         {
-            userToDelete.destroy()
-            queryPhoto.destroy()
+            await userToDelete.destroy()
+            await queryPhoto.destroy()
+            await queryCart.destroy()
+            await queryFavorite.destroy()
             return res.status(200).json({ msg: '¡Avada kedabra!..... Oops!' })
         }
 
