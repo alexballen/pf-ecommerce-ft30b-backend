@@ -7,6 +7,7 @@ const {
   buyproduct,
   buyall,
   getpayinfo,
+  updatecart,
 } = require("../controllers/purchaseController");
 
 const storeRoute = Router();
@@ -18,5 +19,6 @@ storeRoute.post("/buyall", buyall);
 storeRoute.post("/clean", deleteAllCart);
 storeRoute.post("/payments", getpayinfo);
 storeRoute.post("/:id", buyproduct);
+storeRoute.put("/update", updatecart);
 
 module.exports = storeRoute;
