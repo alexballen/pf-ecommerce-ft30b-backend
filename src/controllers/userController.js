@@ -178,7 +178,6 @@ const completeSignUp = async (req, res) =>
     }
 }
 
-
 async function deleteUser(req, res)
 {
     const { userId } = req.params
@@ -236,7 +235,7 @@ async function userSoftDelete(req, res)
 
     try
     {
-        if (restore)
+        if (restore == true)
         {
             await User.restore({
                 where: {
