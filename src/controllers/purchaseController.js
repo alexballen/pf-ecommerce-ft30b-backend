@@ -39,6 +39,36 @@ const addProductToCart = async (req, res) => {
   }
 };
 
+const updatecart = async (req, res) => {
+  let { userId, productId, qty } = req.body;
+  try {
+    const userCart = await Cart.findOne({
+      where: {
+        userId,
+      },
+      include: Product,
+    });
+    const queryProduct = await Product.findOne({
+      where: {
+        id: productId,
+      },
+    });
+
+    queryProduct.quantity = qty;
+    await queryProduct.save();
+    await userCart.addProduct(queryProduct);
+    console.log(userCart);
+    res.status(200).json({
+      msg: "Articulo agregado al carrito correctamente, ¡Genial! ¡Más consumismo!",
+    });
+  } catch (error) {
+    res.status(500).json({
+      err: "Algo salió terriblemente mal, estamos trabajando en ello",
+      description: error,
+    });
+  }
+};
+
 const getCart = async (req, res) => {
   let { userId } = req.query;
 
@@ -104,13 +134,14 @@ const buyproduct = async (req, res) => {
           quantity: quantity,
         },
       ],
+
       back_urls: {
-        success: `https://localhost:3000/ipayments/${id}`,
-        failure: "https://localhost:3000/paymentsfail",
-        pending: "https://localhost:3000/paymentspending",
+        success: `https://h-couture-odxfhjkfia-uc.a.run.app/ipayments/${userId}`,
+        failure: "https://h-couture-odxfhjkfia-uc.a.run.app/paymentsfail",
+        pending: "https://h-couture-odxfhjkfia-uc.a.run.app/paymentspending",
       },
       auto_return: "approved",
-      // notification_url: `https://localhost:3000/store/payments`,
+      notification_url: `https://pf-ecommerce-ft-30-b-odxfhjkfia-uc.a.run.app/store/payments`,
     };
 
     mercadopago.preferences.create(preference).then(function (response) {
@@ -126,17 +157,8 @@ const buyproduct = async (req, res) => {
 };
 
 const getpayinfo = async (req, res) => {
-  const { body, query } = req;
-  if (!body && !query) {
-    res.status(500).json({
-      err: "Algo salió terriblemente mal, estamos trabajando en ello",
-      description: error,
-    });
-  }
-
   try {
-    const info = [...body, ...query];
-    res.status(200).json(info);
+    res.status(200).json(req.body);
   } catch (error) {
     res.status(500).json({
       err: "Algo salió terriblemente mal, estamos trabajando en ello",
@@ -172,12 +194,12 @@ const buyall = async (req, res) => {
         name: user.username,
       },
       back_urls: {
-        success: `https://localhost:3000/payments/${userId}`,
-        failure: "https://localhost:3000/paymentsfail",
-        pending: "https://localhost:3000/paymentspending",
+        success: `https://h-couture-odxfhjkfia-uc.a.run.app/payments/${userId}`,
+        failure: "https://h-couture-odxfhjkfia-uc.a.run.app/paymentsfail",
+        pending: "https://h-couture-odxfhjkfia-uc.a.run.app/paymentspending",
       },
       auto_return: "approved",
-      // notification_url: `https://localhost:3000/store/payments`,
+      notification_url: `https://pf-ecommerce-ft-30-b-odxfhjkfia-uc.a.run.app/store/payments`,
     };
 
     for (let e of cart) {
@@ -231,4 +253,5 @@ module.exports = {
   buyproduct,
   buyall,
   getpayinfo,
+  updatecart,
 };
