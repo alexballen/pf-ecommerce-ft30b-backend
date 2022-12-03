@@ -5,7 +5,7 @@ const {
   conn,
   Favorite,
   Product,
-  Brand,
+  Brand,Country
 } = require("../db.js");
 const { Op } = require("sequelize");
 
