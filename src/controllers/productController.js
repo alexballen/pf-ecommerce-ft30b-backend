@@ -249,8 +249,8 @@ const deleteProduct = async (req, res) =>
         productId: id,
       },
     });
-    await queryPhoto.destroy();
-    await queryProduct.destroy();
+    await queryPhoto.destroy({force: true});
+    await queryProduct.destroy({force: true});
     res.status(200).json({
       msg: "Se fue, ¡Kaboom!, ya no existe más",
     });
@@ -262,6 +262,50 @@ const deleteProduct = async (req, res) =>
     });
   }
 };
+
+const softDeleteProduct = async(req, res) => {
+  const { id } = req.params;
+  const { restore } = req.query;
+
+  try {
+
+    if(restore == true) {
+      await Product.restore({
+        where: {
+          id: id
+        }
+      })
+      return res.status(200).json({ msg: "Producto devuelta en el mapa!" })
+    }
+
+    const productToDelete = await Product.findOne({
+      where: {
+        id: id
+      }
+    })
+
+    if(!productToDelete) {
+      return res
+      .status(404)
+      .json({
+          msg: "No hay producto que coincida con esos valores, chequear Id enviado",
+      });
+    } else {
+      Product.destroy({
+        where: {
+            id: id,
+        },
+    });
+    return res.status(200).json({ msg: "Producto escondido con exito!" });
+    }
+
+  } catch (error) {
+    res.status(500).json({
+      err: "Algo salió terriblemente mal, estamos trabajando en ello",
+      description: error,
+    });
+  }
+}
 
 const updateProduct = async (req, res) =>
 {
@@ -331,6 +375,7 @@ module.exports = {
   getCategories,
   getBrands,
   deleteProduct,
+  softDeleteProduct,
   updateProduct,
   addNewReview,
   getproduct,

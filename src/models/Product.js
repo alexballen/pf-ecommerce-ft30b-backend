@@ -40,5 +40,8 @@ module.exports = (sequelize) => {
         tags: {
             type: DataTypes.ARRAY(DataTypes.STRING)
         }
+    }, {
+        timestamps: true,
+        paranoid: true
     })
 }
