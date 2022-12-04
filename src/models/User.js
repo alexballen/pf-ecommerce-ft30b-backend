@@ -25,9 +25,6 @@ module.exports = (sequelize) =>
                 return `${this.firstName} ${this.lastName}`
             }
         },
-        gender: {
-            type: DataTypes.ENUM('Hombre', 'Mujer')
-        },
         email: {
             type: DataTypes.STRING,
             validate: {
