@@ -42,25 +42,18 @@ const addProductToCart = async (req, res) => {
 const updatecart = async (req, res) => {
   let { userId, productId, qty } = req.body;
   try {
-    const userCart = await Cart.findOne({
-      where: {
-        userId,
-      },
-      include: Product,
-    });
-    const queryProduct = await Product.findOne({
-      where: {
-        id: productId,
-      },
-    });
+  
+      const queryCart = await Cart.findOne({
+        where: {
+          userId: userId,
+        },
+        include: Product,
+      });
+      
+     const found =   queryCart.products.find((e)=> e.id === productId )
+      // found.quantity = qty
 
-    queryProduct.quantity = qty;
-    await queryProduct.save();
-    await userCart.addProduct(queryProduct);
-    console.log(userCart);
-    res.status(200).json({
-      msg: "Articulo agregado al carrito correctamente, ¡Genial! ¡Más consumismo!",
-    });
+      // await queryCart.setProduct({where:{id : id},found})
   } catch (error) {
     res.status(500).json({
       err: "Algo salió terriblemente mal, estamos trabajando en ello",
@@ -115,7 +108,7 @@ const removeFromCart = async (req, res) => {
 
 const buyproduct = async (req, res) => {
   const { id } = req.params;
-  const { quantity } = req.body;
+  const { quantity, userId } = req.body;
 
   try {
     const product = await Product.findByPk(id);
@@ -124,15 +117,20 @@ const buyproduct = async (req, res) => {
         msg: "No se encontró el producto que estas buscando... seguramente era una capa",
       });
     }
-
+ 
     let preference = {
+
+      
       items: [
+      
         {
           id: product.id,
           title: product.name,
           unit_price: product.unitPrice,
-          quantity: quantity,
+          quantity: parseInt(quantity) ,
+      
         },
+         
       ],
 
       back_urls: {
@@ -146,7 +144,7 @@ const buyproduct = async (req, res) => {
 
     mercadopago.preferences.create(preference).then(function (response) {
       res.status(200).json(response.body.init_point);
-      console.log(response.body);
+ 
     });
   } catch (error) {
     res.status(500).json({
@@ -158,7 +156,12 @@ const buyproduct = async (req, res) => {
 
 const getpayinfo = async (req, res) => {
   try {
+
+
+
     res.status(200).json(req.body);
+
+
   } catch (error) {
     res.status(500).json({
       err: "Algo salió terriblemente mal, estamos trabajando en ello",
@@ -168,7 +171,7 @@ const getpayinfo = async (req, res) => {
 };
 
 const buyall = async (req, res) => {
-  let { userId } = req.body;
+  const { userId } = req.body;
 
   try {
     const userCart = await Cart.findOne({
@@ -178,7 +181,7 @@ const buyall = async (req, res) => {
       include: Product,
     });
     const cart = userCart.products;
-
+    
     const user = await User.findOne({
       where: {
         id: userId,
