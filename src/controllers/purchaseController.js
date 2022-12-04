@@ -39,6 +39,29 @@ const addProductToCart = async (req, res) => {
   }
 };
 
+const updatecart = async (req, res) => {
+  let { userId, productId, qty } = req.body;
+  try {
+  
+      const queryCart = await Cart.findOne({
+        where: {
+          userId: userId,
+        },
+        include: Product,
+      });
+      
+     const found =   queryCart.products.find((e)=> e.id === productId )
+      // found.quantity = qty
+
+      // await queryCart.setProduct({where:{id : id},found})
+  } catch (error) {
+    res.status(500).json({
+      err: "Algo salió terriblemente mal, estamos trabajando en ello",
+      description: error,
+    });
+  }
+};
+
 const getCart = async (req, res) => {
   let { userId } = req.query;
 
@@ -85,7 +108,7 @@ const removeFromCart = async (req, res) => {
 
 const buyproduct = async (req, res) => {
   const { id } = req.params;
-  const { quantity } = req.body;
+  const { quantity, userId } = req.body;
 
   try {
     const product = await Product.findByPk(id);
@@ -94,28 +117,34 @@ const buyproduct = async (req, res) => {
         msg: "No se encontró el producto que estas buscando... seguramente era una capa",
       });
     }
-
+ 
     let preference = {
+
+      
       items: [
+      
         {
           id: product.id,
           title: product.name,
           unit_price: product.unitPrice,
-          quantity: quantity,
+          quantity: parseInt(quantity) ,
+      
         },
+         
       ],
+
       back_urls: {
-        success: `https://localhost:3000/ipayments/${id}`,
-        failure: "https://localhost:3000/paymentsfail",
-        pending: "https://localhost:3000/paymentspending",
+        success: `https://h-couture-odxfhjkfia-uc.a.run.app/ipayments/${userId}`,
+        failure: "https://h-couture-odxfhjkfia-uc.a.run.app/paymentsfail",
+        pending: "https://h-couture-odxfhjkfia-uc.a.run.app/paymentspending",
       },
       auto_return: "approved",
-      // notification_url: `https://localhost:3000/store/payments`,
+      notification_url: `https://pf-ecommerce-ft-30-b-odxfhjkfia-uc.a.run.app/store/payments`,
     };
 
     mercadopago.preferences.create(preference).then(function (response) {
       res.status(200).json(response.body.init_point);
-      console.log(response.body);
+ 
     });
   } catch (error) {
     res.status(500).json({
@@ -126,17 +155,13 @@ const buyproduct = async (req, res) => {
 };
 
 const getpayinfo = async (req, res) => {
-  const { body, query } = req;
-  if (!body && !query) {
-    res.status(500).json({
-      err: "Algo salió terriblemente mal, estamos trabajando en ello",
-      description: error,
-    });
-  }
-
   try {
-    const info = [...body, ...query];
-    res.status(200).json(info);
+
+
+
+    res.status(200).json(req.body);
+
+
   } catch (error) {
     res.status(500).json({
       err: "Algo salió terriblemente mal, estamos trabajando en ello",
@@ -146,7 +171,7 @@ const getpayinfo = async (req, res) => {
 };
 
 const buyall = async (req, res) => {
-  let { userId } = req.body;
+  const { userId } = req.body;
 
   try {
     const userCart = await Cart.findOne({
@@ -156,7 +181,7 @@ const buyall = async (req, res) => {
       include: Product,
     });
     const cart = userCart.products;
-
+    
     const user = await User.findOne({
       where: {
         id: userId,
@@ -172,12 +197,12 @@ const buyall = async (req, res) => {
         name: user.username,
       },
       back_urls: {
-        success: `https://localhost:3000/payments/${userId}`,
-        failure: "https://localhost:3000/paymentsfail",
-        pending: "https://localhost:3000/paymentspending",
+        success: `https://h-couture-odxfhjkfia-uc.a.run.app/payments/${userId}`,
+        failure: "https://h-couture-odxfhjkfia-uc.a.run.app/paymentsfail",
+        pending: "https://h-couture-odxfhjkfia-uc.a.run.app/paymentspending",
       },
       auto_return: "approved",
-      // notification_url: `https://localhost:3000/store/payments`,
+      notification_url: `https://pf-ecommerce-ft-30-b-odxfhjkfia-uc.a.run.app/store/payments`,
     };
 
     for (let e of cart) {
@@ -231,4 +256,5 @@ module.exports = {
   buyproduct,
   buyall,
   getpayinfo,
+  updatecart,
 };

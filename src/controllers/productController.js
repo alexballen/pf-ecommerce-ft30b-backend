@@ -269,7 +269,7 @@ const softDeleteProduct = async(req, res) => {
 
   try {
 
-    if(restore == true) {
+    if(restore) {
       await Product.restore({
         where: {
           id: id
