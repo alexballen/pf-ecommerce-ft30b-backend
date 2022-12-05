@@ -9,8 +9,6 @@ const {
 } = require("../db.js");
 const { Op } = require("sequelize");
 
-const { User, City, Photo, conn, Favorite, Product, Brand, Cart } = require('../db.js')
-const { Op } = require('sequelize')
 const { card_token } = require('mercadopago')
 
 async function createNewUser(user)
