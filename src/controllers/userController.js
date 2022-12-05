@@ -187,50 +187,57 @@ async function deleteUser(req, res) {
       queryPhoto.destroy({ force: true });
       return res.status(200).json({ msg: "¡Avada kedabra!..... Oops!" });
     }
-  } catch (error) {
-    res.status(500).json({
-      err: "Algo salió terriblemente mal, estamos trabajando en ello",
-      description: error,
-    });
-  }
-}
 
-async function userSoftDelete(req, res) {
-  const { userId } = req.params;
-  const { restore } = req.query;
-  try {
-    if (restore == true) {
-      await User.restore({
-        where: {
-          id: userId,
-        },
-      });
-      return res.status(200).json({ msg: "Usuario devuelta en el mapa!" });
+    res.status(200).send(updatedUser);
+  } 
+ 
+async function userSoftDelete(req, res)
+{
+    const { userId } = req.params;
+    const { restore } = req.query;
+
+    try
+    {
+        if (restore == true)
+        {
+            await User.restore({
+                where: {
+                    id: userId,
+                },
+            });
+            return res.status(200).json({ msg: "Usuario devuelta en el mapa!" });
+        }
+        const userSoftDelete = User.findOne({
+            where: {
+                id: userId,
+            },
+        });
+        if (!userSoftDelete)
+        {
+            return res
+                .status(404)
+                .json({
+                    msg: "No hay usuario que coincida con esos valores, chequear Id enviado",
+                });
+        } else
+        {
+            User.destroy({
+                where: {
+                    id: userId,
+                },
+            });
+            return res.status(200).json({ msg: "Usuario escondido con exito!" });
+        }
+    } catch (error)
+    {
+        res.status(500).json({
+            err: "Algo salió terriblemente mal, estamos trabajando en ello",
+            description: error,
+        });
+ 
     }
-    const userSoftDelete = User.findOne({
-      where: {
-        id: userId,
-      },
-    });
-    if (!userSoftDelete) {
-      return res.status(404).json({
-        msg: "No hay usuario que coincida con esos valores, chequear Id enviado",
-      });
-    } else {
-      User.destroy({
-        where: {
-          id: userId,
-        },
-      });
-      return res.status(200).json({ msg: "Usuario escondido con exito!" });
-    }
-  } catch (error) {
-    res.status(500).json({
-      err: "Algo salió terriblemente mal, estamos trabajando en ello",
-      description: error,
-    });
-  }
-}
+  } 
+
 async function userSoftDelete(req, res) {
   const { userId } = req.params;
   const { restore } = req.query;
