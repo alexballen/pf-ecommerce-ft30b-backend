@@ -34,9 +34,7 @@ module.exports = (sequelize) => {
             type: DataTypes.BOOLEAN,
             defaultValue: false,
         },
-        gender: {
-            type: DataTypes.ENUM('Hombre', 'Mujer'),
-        },
+   
         tags: {
             type: DataTypes.ARRAY(DataTypes.STRING)
         }

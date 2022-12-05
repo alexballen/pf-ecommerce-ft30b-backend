@@ -5,7 +5,9 @@ const {
   conn,
   Favorite,
   Product,
-  Brand,Country
+  Brand,
+  Country,
+  Address
 } = require("../db.js");
 const { Op } = require("sequelize");
 
@@ -51,10 +53,8 @@ const userLogin = async (req, res, next) => {
 
     if (!Us) {
       const response = await createNewUser(req.body);
-
       res.status(200).send({
-        msg: "Usuario creado exitosamente",
-        data: await response,
+        data: response,
       });
     } else if (Us.isBan === true) {
       res.status(403).send({ msg: "Usuario blockeado" });
@@ -187,9 +187,14 @@ async function deleteUser(req, res) {
       queryPhoto.destroy({ force: true });
       return res.status(200).json({ msg: "¡Avada kedabra!..... Oops!" });
     }
-
-    res.status(200).send(updatedUser);
-  } 
+  } catch (error) {
+    console.log(error)
+    res.status(500).json({
+      err: "Algo salió terriblemente mal, estamos trabajando en ello",
+      description: error,
+    });
+  }
+}
  
 async function userSoftDelete(req, res)
 {
@@ -237,44 +242,6 @@ async function userSoftDelete(req, res)
  
     }
   } 
-
-async function userSoftDelete(req, res) {
-  const { userId } = req.params;
-  const { restore } = req.query;
-
-  try {
-    if (restore) {
-      await User.restore({
-        where: {
-          id: userId,
-        },
-      });
-      return res.status(200).json({ msg: "Usuario devuelta en el mapa!" });
-    }
-    const userSoftDelete = User.findOne({
-      where: {
-        id: userId,
-      },
-    });
-    if (!userSoftDelete) {
-      return res.status(404).json({
-        msg: "No hay usuario que coincida con esos valores, chequear Id enviado",
-      });
-    } else {
-      User.destroy({
-        where: {
-          id: userId,
-        },
-      });
-      return res.status(200).json({ msg: "Usuario escondido con exito!" });
-    }
-  } catch (error) {
-    res.status(500).json({
-      err: "Algo salió terriblemente mal, estamos trabajando en ello",
-      description: error,
-    });
-  }
-}
 
 const getUsers = async (req, res) => {
   try {
@@ -382,7 +349,59 @@ async function removeFromFavorites(req, res) {
   }
 }
 
+async function getUserAddresses(req,res) { 
+  const { userId} = req.body;
+  try {
+    const response = await Address.findAll({
+      where: {
+        userId: userId,
+      },
+    });
+
+    res.status(200).json({
+      data: await response,
+    })
+
+  } catch (error) {
+    res.status(500).json({
+      err: "Algo salió terriblemente mal, estamos trabajando en ello",
+      description: error,
+  });
+  }
+}
+
+
+async function createUserAddress(req,res) { 
+  const { userId, country, street, city, houseNumber, neighborhood, zipCode} = req.body;
+  try {
+
+    const newAddress = {
+      userId:userId,
+      country:country,
+      street:street,
+      city:city,
+      houseNumber:houseNumber,
+      neighborhood: neighborhood,
+      zipCode: zipCode
+    }
+
+    const response = await Address.create(newAddress);
+
+    res.status(200).json({
+      data: await response,
+    })
+
+  } catch (error) {
+    res.status(500).json({
+      err: "Algo salió terriblemente mal, estamos trabajando en ello",
+      description: error,
+  });
+  }
+}
+
 module.exports = {
+  createUserAddress,
+  getUserAddresses,
   createNewUser,
   userLogin,
   updateUserData,
