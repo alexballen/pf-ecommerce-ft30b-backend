@@ -50,14 +50,14 @@ async function createNewUser(user)
     return error;
   }
 }
-const userLogin = async (req, res, next) => {
-  console.log("This is the body:", req.body);
+const userLogin = async (req, res) => {
+  
   const { email } = req.body;
 
   try {
     const Us = await User.findOne({
       where: {
-        email: email,
+        email
       },
       include: { all: true, nested: true },
     });
@@ -68,12 +68,11 @@ const userLogin = async (req, res, next) => {
         data: response,
       });
     } else if (Us.isBan === true) {
-      res.status(403).send({ msg: "Usuario blockeado" });
+      res.status(403).send({ msg: "Usuario bloqueado" });
     } else {
       res.status(200).send({ data: Us });
     }
   } catch (error) {
-    console.log(error);
     res.status(500).json({
       err: "Algo salió terriblemente mal, estamos trabajando en ello",
       description: error,
@@ -200,7 +199,7 @@ async function deleteUser(req, res) {
       return res.status(200).json({ msg: "¡Avada kedabra!..... Oops!" });
     }
   } catch (error) {
-    console.log(error)
+   
     res.status(500).json({
       err: "Algo salió terriblemente mal, estamos trabajando en ello",
       description: error,
