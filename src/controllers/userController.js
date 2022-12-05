@@ -208,61 +208,11 @@ async function deleteUser(req, res) {
   }
 }
 
-async function deleteUser(req, res)
-{
-    const { userId } = req.params
-
-    try
-    {
-        const userToDelete = await User.findOne({
-            where: {
-                id: userId
-            }
-        })
-
-        const queryPhoto = await Photo.findOne({
-            where: {
-                userId: userId
-            }
-        })
-        const queryFavorite = await Favorite.findOne({
-            where: {
-                userId: userId
-            }
-        })
-        const queryCart = await Cart.findOne({
-            where: {
-                userId: userId
-            }
-        })
-
-        if (!userToDelete || userToDelete.length === 0)
-        {
-            return res.status(404).json({ msg: '¡Dejad al usuario tranquilo!' })
-        } else
-        {
-            await userToDelete.destroy()
-            await queryPhoto.destroy()
-            await queryCart.destroy()
-            await queryFavorite.destroy()
-            return res.status(200).json({ msg: '¡Avada kedabra!..... Oops!' })
-        }
-
-    } catch (error)
-    {
-        res.status(500).json({
-            err: 'Algo salió terriblemente mal, estamos trabajando en ello',
-            description: error
-        })
-    }
-
-}
 async function userSoftDelete(req, res) {
   const { userId } = req.params;
   const { restore } = req.query;
-
   try {
-    if (restore) {
+    if (restore == true) {
       await User.restore({
         where: {
           id: userId,
@@ -287,7 +237,50 @@ async function userSoftDelete(req, res) {
       });
       return res.status(200).json({ msg: "Usuario escondido con exito!" });
     }
-  } 
+  } catch (error) {
+    res.status(500).json({
+      err: "Algo salió terriblemente mal, estamos trabajando en ello",
+      description: error,
+    });
+  }
+}
+async function userSoftDelete(req, res) {
+  const { userId } = req.params
+  const { restore } = req.query
+
+  try {
+    if (restore) {
+      await User.restore({
+        where: {
+          id: userId,
+        },
+      })
+      return res.status(200).json({ msg: "Usuario devuelta en el mapa!" })
+    }
+    const userSoftDelete = User.findOne({
+      where: {
+        id: userId,
+      },
+    })
+    if (!userSoftDelete) {
+      return res.status(404).json({
+        msg: "No hay usuario que coincida con esos valores, chequear Id enviado",
+      })
+    } else {
+      User.destroy({
+        where: {
+          id: userId,
+        },
+      })
+      return res.status(200).json({ msg: "Usuario escondido con exito!" })
+    }
+  } catch (error) {
+    res.status(500).json({
+        err: 'Algo salió terriblemente mal, estamos trabajando en ello',
+        description: error
+    })
+  }
+}
 
 const getUsers = async (req, res) => {
   try {
