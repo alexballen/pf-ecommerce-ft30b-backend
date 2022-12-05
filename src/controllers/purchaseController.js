@@ -1,4 +1,4 @@
-const { Cart, User, Product } = require("../db");
+const { Cart, User, Product } = require('../db')
 const mercadopago = require("mercadopago");
 
 const addProductToCart = async (req, res) => {
