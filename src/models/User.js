@@ -25,7 +25,7 @@ module.exports = (sequelize) =>
                 return `${this.firstName} ${this.lastName}`
             }
         },
-
+       
         email: {
             type: DataTypes.STRING,
             validate: {

@@ -11,16 +11,27 @@ const {
 } = require("../db.js");
 const { Op } = require("sequelize");
 
-async function createNewUser(user) {
-  let { email, given_name, family_name, nickname, picture } = user;
-  const transaction = await conn.transaction();
-  try {
-    let newUser = await User.create({
-      email: email,
-      username: nickname,
-      firstName: given_name,
-      lastName: family_name,
-    });
+const { card_token } = require('mercadopago')
+
+async function createNewUser(user)
+{
+
+    let {
+        email,
+        given_name,
+        family_name,
+        nickname,
+        picture
+    } = user
+    const transaction = await conn.transaction()
+    try
+    {
+        let newUser = await User.create({
+            email: email,
+            username: nickname,
+            firstName: given_name,
+            lastName: family_name
+        })
 
     await newUser.createCart();
     await newUser.createFavorite();
@@ -127,10 +138,11 @@ async function updateUserData(req, res) {
   }
 }
 
-const completeSignUp = async (req, res) => {
-  let { userId } = req.params;
-  let { phoneNumber, cityId } = req.body;
-  const transaction = await conn.transaction();
+const completeSignUp = async (req, res) =>
+{
+    let { userId } = req.params
+    let { phoneNumber, cityId } = req.body
+    const transaction = await conn.transaction();
 
   try {
     let user = await User.findOne({
@@ -195,53 +207,80 @@ async function deleteUser(req, res) {
     });
   }
 }
- 
-async function userSoftDelete(req, res)
-{
-    const { userId } = req.params;
-    const { restore } = req.query;
 
-    try
-    {
-        if (restore == true)
-        {
-            await User.restore({
-                where: {
-                    id: userId,
-                },
-            });
-            return res.status(200).json({ msg: "Usuario devuelta en el mapa!" });
-        }
-        const userSoftDelete = User.findOne({
-            where: {
-                id: userId,
-            },
-        });
-        if (!userSoftDelete)
-        {
-            return res
-                .status(404)
-                .json({
-                    msg: "No hay usuario que coincida con esos valores, chequear Id enviado",
-                });
-        } else
-        {
-            User.destroy({
-                where: {
-                    id: userId,
-                },
-            });
-            return res.status(200).json({ msg: "Usuario escondido con exito!" });
-        }
-    } catch (error)
-    {
-        res.status(500).json({
-            err: "Algo salió terriblemente mal, estamos trabajando en ello",
-            description: error,
-        });
- 
+async function userSoftDelete(req, res) {
+  const { userId } = req.params;
+  const { restore } = req.query;
+  try {
+    if (restore == true) {
+      await User.restore({
+        where: {
+          id: userId,
+        },
+      });
+      return res.status(200).json({ msg: "Usuario devuelta en el mapa!" });
     }
-  } 
+    const userSoftDelete = User.findOne({
+      where: {
+        id: userId,
+      },
+    });
+    if (!userSoftDelete) {
+      return res.status(404).json({
+        msg: "No hay usuario que coincida con esos valores, chequear Id enviado",
+      });
+    } else {
+      User.destroy({
+        where: {
+          id: userId,
+        },
+      });
+      return res.status(200).json({ msg: "Usuario escondido con exito!" });
+    }
+  } catch (error) {
+    res.status(500).json({
+      err: "Algo salió terriblemente mal, estamos trabajando en ello",
+      description: error,
+    });
+  }
+}
+async function userSoftDelete(req, res) {
+  const { userId } = req.params
+  const { restore } = req.query
+
+  try {
+    if (restore) {
+      await User.restore({
+        where: {
+          id: userId,
+        },
+      })
+      return res.status(200).json({ msg: "Usuario devuelta en el mapa!" })
+    }
+    const userSoftDelete = User.findOne({
+      where: {
+        id: userId,
+      },
+    })
+    if (!userSoftDelete) {
+      return res.status(404).json({
+        msg: "No hay usuario que coincida con esos valores, chequear Id enviado",
+      })
+    } else {
+      User.destroy({
+        where: {
+          id: userId,
+        },
+      })
+      return res.status(200).json({ msg: "Usuario escondido con exito!" })
+    }
+  } catch (error) {
+    res.status(500).json({
+        err: 'Algo salió terriblemente mal, estamos trabajando en ello',
+        description: error
+    })
+  }
+}
 
 const getUsers = async (req, res) => {
   try {

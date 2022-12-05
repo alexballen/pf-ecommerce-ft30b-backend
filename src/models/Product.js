@@ -34,7 +34,7 @@ module.exports = (sequelize) => {
             type: DataTypes.BOOLEAN,
             defaultValue: false,
         },
-   
+        
         tags: {
             type: DataTypes.ARRAY(DataTypes.STRING)
         }
