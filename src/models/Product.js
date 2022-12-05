@@ -33,6 +33,13 @@ module.exports = (sequelize) => {
         isFeatured: {
             type: DataTypes.BOOLEAN,
             defaultValue: false,
+        },
+        
+        tags: {
+            type: DataTypes.ARRAY(DataTypes.STRING)
         }
+    }, {
+        timestamps: true,
+        paranoid: true
     })
 }
