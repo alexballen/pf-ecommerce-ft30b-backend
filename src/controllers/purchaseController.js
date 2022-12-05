@@ -1,4 +1,7 @@
+
 const { Cart, User, Product } = require("../db");
+
+
 const mercadopago = require("mercadopago");
 
 const addProductToCart = async (req, res) => {
@@ -249,6 +252,7 @@ const deleteAllCart = async (req, res) => {
 };
 
 module.exports = {
+
   addProductToCart,
   getCart,
   removeFromCart,
@@ -258,3 +262,4 @@ module.exports = {
   getpayinfo,
   updatecart,
 };
+
