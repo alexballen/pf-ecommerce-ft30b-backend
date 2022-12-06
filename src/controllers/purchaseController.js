@@ -121,6 +121,17 @@ const buyproduct = async (req, res) => {
       });
     }
  
+    product.stock = product.stock - quantity
+    await product.save()
+    const queryCart = await Cart.findOne({
+      where: {
+        userId: userId
+      },
+      include: Product
+    })
+
+    queryCart.removeProduct(product);
+
     let preference = {
 
       
@@ -227,7 +238,8 @@ const buyall = async (req, res) => {
         await queryProduct.save()
     })
 
-    
+    await user.removeCart()
+    await user.createCart()
 
     mercadopago.preferences.create(preference).then(function (response) {
       
