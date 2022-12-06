@@ -4,7 +4,7 @@ const fs = require('fs');
 const path = require('path');
 const Knex = require('knex')
 const {
-  DB_HOST, DB_NAME, DB_PASSWORD, DB_USER, DATABASE_URL,
+  DB_HOST, DB_NAME, DB_PASSWORD, DB_USER, DATABASE_URL
 } = process.env;
 
 
@@ -19,7 +19,8 @@ const sequelize = process.env.NODE_ENV === 'production' ?
     host: DB_HOST,
     database: DB_NAME,
     dialectOptions: {
-      ssl: false
+      ssl: false,
+  
     }
   }) :
   new Sequelize(DATABASE_URL, {
