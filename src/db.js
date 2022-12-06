@@ -92,6 +92,7 @@ User.hasMany(Compra)
 
 Country.hasMany(City);
 City.belongsTo(Country);
+Country.hasMany(User, {foreignKey: 'countryOfOriginId'})
 
 City.hasMany(User, { foreignKey: 'cityOfOriginId' });
 User.belongsTo(City, { as: 'CityOfOrigin', foreignKey: 'cityOfOriginId' });
