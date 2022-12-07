@@ -46,17 +46,18 @@ const updatecart = async (req, res) => {
   let { userId, productId, qty } = req.body;
   try {
   
-      const queryCart = await Cart.findOne({
-        where: {
-          userId: userId,
-        },
-        include: Product,
-      });
-      
-     const found =   queryCart.products.find((e)=> e.id === productId )
-      // found.quantity = qty
+    //   const queryCart = await Cart.findOne({
+    //     where: {
+    //       userId: userId,
+    //     },
+    //     include: Product,
+    //   });
+       
+    //  const found =  await queryCart.products.find((e)=> e.id === productId ? e.quantity = qty : queryCart.products )
 
-      // await queryCart.setProduct({where:{id : id},found})
+    //  found.save()  
+
+      
   } catch (error) {
     res.status(500).json({
       err: "Algo salió terriblemente mal, estamos trabajando en ello",
@@ -133,8 +134,6 @@ const buyproduct = async (req, res) => {
     queryCart.removeProduct(product);
 
     let preference = {
-
-      
       items: [
       
         {
@@ -148,16 +147,16 @@ const buyproduct = async (req, res) => {
       ],
 
       back_urls: {
-        success: `https://h-couture-odxfhjkfia-uc.a.run.app/ipayments/${userId}`,
-        failure: "https://h-couture-odxfhjkfia-uc.a.run.app/paymentsfail",
-        pending: "https://h-couture-odxfhjkfia-uc.a.run.app/paymentspending",
+        success: `http://localhost:3001/itempayments/`,
+        failure: `http://localhost:3001/paymentsfail/`,
+        pending: `http://localhost:3001/paymentspending/`,
       },
       auto_return: "approved",
-      notification_url: `https://pf-ecommerce-ft-30-b-odxfhjkfia-uc.a.run.app/store/payments`,
+      notification_url: `http://localhost:3001/store/payments/`,
     };
 
     mercadopago.preferences.create(preference).then(function (response) {
-      res.status(200).json(response.body.init_point);
+      res.status(200).json(response.body);
  
     });
   } catch (error) {
@@ -185,17 +184,11 @@ const getpayinfo = async (req, res) => {
 };
 
 const buyall = async (req, res) => {
-  const { userId } = req.body;
+  const { Cartitems ,userId} = req.body;
 
   try {
-    const userCart = await Cart.findOne({
-      where: {
-        userId: userId,
-      },
-      include: Product,
-    });
-    const cart = userCart.products;
-    
+ 
+   
     const user = await User.findOne({
       where: {
         id: userId,
@@ -211,15 +204,15 @@ const buyall = async (req, res) => {
         name: user.username,
       },
       back_urls: {
-        success: `https://h-couture-odxfhjkfia-uc.a.run.app/payments/${userId}`,
-        failure: "https://h-couture-odxfhjkfia-uc.a.run.app/paymentsfail",
-        pending: "https://h-couture-odxfhjkfia-uc.a.run.app/paymentspending",
+        success: `http://localhost:3001/cartpayments/`,
+        failure: `http://localhost:3001/paymentsfail/`,
+        pending: `http://localhost:3001/paymentspending/`,
       },
       auto_return: "approved",
-      notification_url: `https://pf-ecommerce-ft-30-b-odxfhjkfia-uc.a.run.app/store/payments`,
+      notification_url: `http://localhost:3001/store/payments/`,
     };
 
-    for (let e of cart) {
+    for (let e of Cartitems) {
       preference.items.push({
         id: e.id,
         title: e.name,
@@ -228,22 +221,18 @@ const buyall = async (req, res) => {
       });
     }
     
-    cart.forEach( async product => {
+    Cartitems.forEach( async product => {
         const queryProduct = await Product.findOne({
             where: {
                 id: product.id
             }
         })
-        queryProduct.stock = queryProduct.stock - queryProduct.quantity
+        queryProduct.stock = queryProduct.stock - product.quantity
         await queryProduct.save()
     })
-
-    await user.removeCart()
-    await user.createCart()
-
+ 
     mercadopago.preferences.create(preference).then(function (response) {
-      
-      res.status(200).json(response.body.init_point);
+      res.status(200).json(response.body);
     });
   } catch (error) {
     res.status(500).json({
