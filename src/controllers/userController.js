@@ -50,14 +50,14 @@ async function createNewUser(user)
     return error;
   }
 }
-const userLogin = async (req, res, next) => {
-  console.log("This is the body:", req.body);
+const userLogin = async (req, res) => {
+  
   const { email } = req.body;
 
   try {
     const Us = await User.findOne({
       where: {
-        email: email,
+        email
       },
       include: { all: true, nested: true },
     });
@@ -68,12 +68,11 @@ const userLogin = async (req, res, next) => {
         data: response,
       });
     } else if (Us.isBan === true) {
-      res.status(403).send({ msg: "Usuario blockeado" });
+      res.status(403).send({ msg: "Usuario bloqueado" });
     } else {
       res.status(200).send({ data: Us });
     }
   } catch (error) {
-    console.log(error);
     res.status(500).json({
       err: "Algo salió terriblemente mal, estamos trabajando en ello",
       description: error,
@@ -185,6 +184,11 @@ async function deleteUser(req, res) {
         id: userId,
       },
     });
+    const queryAddress = await Address.findOne({
+      where: {
+        userId: userId
+      }
+    })
 
     const queryPhoto = await Photo.findOne({
       where: {
@@ -195,12 +199,15 @@ async function deleteUser(req, res) {
     if (!userToDelete || userToDelete.length === 0) {
       return res.status(404).json({ msg: "¡Dejad al usuario tranquilo!" });
     } else {
-      userToDelete.destroy({ force: true });
-      queryPhoto.destroy({ force: true });
+      await queryAddress.destroy({ force: true })
+      await queryPhoto.destroy({ force: true })
+      await userToDelete.destroy({ force: true });
+      
+
       return res.status(200).json({ msg: "¡Avada kedabra!..... Oops!" });
     }
   } catch (error) {
-    console.log(error)
+   
     res.status(500).json({
       err: "Algo salió terriblemente mal, estamos trabajando en ello",
       description: error,
@@ -398,7 +405,7 @@ async function getUserAddresses(req,res) {
     });
 
     res.status(200).json({
-      data: await response,
+      data: response,
     })
 
   } catch (error) {
@@ -414,20 +421,50 @@ async function createUserAddress(req,res) {
   const { userId, country, street, city, houseNumber, neighborhood, zipCode} = req.body;
   try {
 
-    const newAddress = {
-      userId:userId,
-      country:country,
-      street:street,
-      city:city,
-      houseNumber:houseNumber,
-      neighborhood: neighborhood,
-      zipCode: zipCode
+    const queryUser = await User.findOne({
+      where: {
+        id: userId
+      },
+      include: [Address]
+    })
+   
+    const [queryCountry, createCountry] = await Country.findOrCreate({
+      where: {
+        name: country
+      },
+      defaults: {
+        name: country
+      }
+    })
+    
+    const [queryCity, createCity] = await City.findOrCreate({
+      where: {
+        name: city,
+      },
+      defaults: {
+        name: city
+      }
+    })
+     console.log(queryCity)
+    if (createCity === true) {
+      await queryCountry.addCity(queryCity)
     }
 
-    const response = await Address.create(newAddress);
+    await queryCity.addUser(queryUser)
+    await queryCountry.addUser(queryUser)
+    
+
+    const userAddress = await queryUser.createAddress({
+      country,
+      street,
+      city,
+      houseNumber,
+      neighborhood,
+      zipCode
+    })
 
     res.status(200).json({
-      data: await response,
+      data: userAddress,
     })
 
   } catch (error) {

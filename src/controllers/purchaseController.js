@@ -1,4 +1,7 @@
+
 const { Cart, User, Product } = require("../db");
+
+
 const mercadopago = require("mercadopago");
 
 const addProductToCart = async (req, res) => {
@@ -118,6 +121,17 @@ const buyproduct = async (req, res) => {
       });
     }
  
+    product.stock = product.stock - quantity
+    await product.save()
+    const queryCart = await Cart.findOne({
+      where: {
+        userId: userId
+      },
+      include: Product
+    })
+
+    queryCart.removeProduct(product);
+
     let preference = {
 
       
@@ -213,8 +227,22 @@ const buyall = async (req, res) => {
         quantity: parseInt(e.quantity),
       });
     }
+    
+    cart.forEach( async product => {
+        const queryProduct = await Product.findOne({
+            where: {
+                id: product.id
+            }
+        })
+        queryProduct.stock = queryProduct.stock - queryProduct.quantity
+        await queryProduct.save()
+    })
+
+    await user.removeCart()
+    await user.createCart()
 
     mercadopago.preferences.create(preference).then(function (response) {
+      
       res.status(200).json(response.body.init_point);
     });
   } catch (error) {
@@ -249,6 +277,7 @@ const deleteAllCart = async (req, res) => {
 };
 
 module.exports = {
+
   addProductToCart,
   getCart,
   removeFromCart,
@@ -258,3 +287,4 @@ module.exports = {
   getpayinfo,
   updatecart,
 };
+

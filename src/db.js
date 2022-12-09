@@ -4,7 +4,7 @@ const fs = require('fs');
 const path = require('path');
 const Knex = require('knex')
 const {
-  DB_HOST, DB_NAME, DB_PASSWORD, DB_USER, DATABASE_URL,
+  DB_HOST, DB_NAME, DB_PASSWORD, DB_USER, DATABASE_URL
 } = process.env;
 
 
@@ -19,7 +19,8 @@ const sequelize = process.env.NODE_ENV === 'production' ?
     host: DB_HOST,
     database: DB_NAME,
     dialectOptions: {
-      ssl: false
+      ssl: false,
+  
     }
   }) :
   new Sequelize(DATABASE_URL, {
@@ -51,7 +52,7 @@ sequelize.models = Object.fromEntries(capsEntries);
 
 // En sequelize.models están todos los modelos importados como propiedades
 // Para relacionarlos hacemos un destructuring
-const { Product, User, Photo, Review, Brand, Category, Address, Cart, Favorite, Compra, Country, City } = sequelize.models;
+const { Product, User, Photo, Review, Brand, Category, Address, Cart, Favorite, Compra, Country, City, Message } = sequelize.models;
 
 // Aca vendrian las relaciones
 // Product.hasMany(Reviews);
@@ -91,6 +92,7 @@ User.hasMany(Compra)
 
 Country.hasMany(City);
 City.belongsTo(Country);
+Country.hasMany(User, {foreignKey: 'countryOfOriginId'})
 
 City.hasMany(User, { foreignKey: 'cityOfOriginId' });
 User.belongsTo(City, { as: 'CityOfOrigin', foreignKey: 'cityOfOriginId' });
