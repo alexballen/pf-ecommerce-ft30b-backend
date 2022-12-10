@@ -9,17 +9,17 @@ module.exports = (sequelize) => {
                 defaultValue: DataTypes.UUIDV4,
                 primaryKey: true,
             },
-            preference_id: {
+            preferenceid: {
                 type: DataTypes.STRING,  
                 allowNull: false,
             
             },
-            collection_id: {
+            collectionid: {
                 type: DataTypes.STRING,
                 allowNull: false,
               
             },
-            merchant_order_id: {
+            merchantorderid: {
                 type: DataTypes.STRING,
                 allowNull: false,
       
@@ -29,12 +29,12 @@ module.exports = (sequelize) => {
                 allowNull: false,
        
             },
-            payment_type: {
+            paymenttype: {
                 type: DataTypes.STRING,
                 allowNull: true,
           
             },
-            collection_status: {
+            collectionstatus: {
                 type: DataTypes.STRING,
                 allowNull: true,
           
