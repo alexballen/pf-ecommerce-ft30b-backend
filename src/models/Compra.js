@@ -41,7 +41,7 @@ module.exports = (sequelize) => {
             },
             },
         {
-            timestamp: false,
+            timestamp: true,
             createdAt: 'fechaDeCompra',
             updatedAt: false
         }
