@@ -20,7 +20,7 @@ const sequelize = process.env.NODE_ENV === 'production' ?
     database: DB_NAME,
     dialectOptions: {
       ssl: false,
-  
+
     }
   }) :
   new Sequelize(DATABASE_URL, {
@@ -70,11 +70,13 @@ Product.belongsToMany(Category, ({ through: 'Product_Category' }))
 Category.belongsToMany(Product, ({ through: 'Product_Category' }))
 
 User.hasMany(Address)
-Address.belongsTo(User,  { foreignKey: 'userId' })
+Address.belongsTo(User, { foreignKey: 'userId' })
 User.hasOne(Photo)
 
-User.hasMany(Review)
-Review.belongsTo(User)
+// User.hasMany(Review)
+// Review.belongsTo(User)
+User.belongsToMany(Product, { through: Review })
+Product.belongsToMany(User, { through: Review })
 
 User.hasOne(Cart)
 Cart.belongsTo(User)
@@ -92,7 +94,7 @@ User.hasMany(Compra)
 
 Country.hasMany(City);
 City.belongsTo(Country);
-Country.hasMany(User, {foreignKey: 'countryOfOriginId'})
+Country.hasMany(User, { foreignKey: 'countryOfOriginId' })
 
 City.hasMany(User, { foreignKey: 'cityOfOriginId' });
 User.belongsTo(City, { as: 'CityOfOrigin', foreignKey: 'cityOfOriginId' });
