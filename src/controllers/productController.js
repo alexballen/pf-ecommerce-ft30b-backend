@@ -7,7 +7,8 @@ const {
   Category,
   Photo,
   Review,
-  Favorite
+  Favorite,
+  User
 } = require("../db.js");
 
 const getAllProducts = async (req, res) =>
@@ -79,7 +80,21 @@ const getproduct = async (req, res) =>
         Brand,
         Category,
         Photo,
-        Review]
+        {
+          model: Review,
+          attributes: [
+            'rating',
+            'description'
+          ],
+          include: {
+            model: User,
+            attributes: [
+              'id',
+              'username'
+            ]
+          }
+        }
+      ]
     });
     if (queryProduct === null)
     {
