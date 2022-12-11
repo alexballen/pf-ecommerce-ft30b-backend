@@ -46,21 +46,40 @@ const crearhistorial = async (req, res) => {
     payment_type,merchant_order_id} = req.body;
   try {
  
-    // const usuario = await User.findOne({
-    //   where: {
-    //     id :userId
-    //   },
+    const usuario = await User.findOne({
+      where: {
+        id :userId
+      },
  
-    // });
+    });
+
+    // const compra = await Compra.create( {
+    // userId:userId,
+    // preferenceid: preference_id,
+    // collectionid: collection_id,
+    // merchantorderid:merchant_order_id,
+    // status:status,
+    // paymenttype:payment_type,
+    // collectionstatus: collection_status,
+
+    // } )
+
+   const compra =  await usuario.createCompra( { 
+        preferenceid: preference_id,
+        collectionid: collection_id,
+        merchantorderid:merchant_order_id,
+        status:status,
+        paymenttype:payment_type,
+        collectionstatus: collection_status,
+       }
+     )  
+     
+    
  
-    //   await usuario.createCompra( { 
-    //     preference_id: 'preference_id',
-    //     collection_id: `collection_id`,
-    //     merchant_order_id: `merchant_order_id`,   
-    //    }
-    //  )  
-  
+
  
+    res.status(200).json(compra);
+
   } catch (error) {
     res.status(500).json({
       err: "Algo salió terriblemente mal, estamos trabajando en ello",
@@ -182,11 +201,11 @@ const buyproduct = async (req, res) => {
           unit_price: product.unitPrice,
           quantity: parseInt(quantity) ,
           picture_url: product.photos[0].url,
-         
+
         },
 
       ],
-     
+  
       back_urls: {
         success: `https://localhost:3000/itempayments`,
         failure: `https://localhost:3000/paymentsfail`,
@@ -194,6 +213,7 @@ const buyproduct = async (req, res) => {
       },
       auto_return: "approved",
       // notification_url: `http://localhost:3001/store/payments/`,
+      external_reference: "H-COMERSEHENRY",
     };
   
 
@@ -220,6 +240,10 @@ const getpayinfo = async (req, res) => {
 
     res.status(200).json(req.body);
 
+    // await Compra.findOrCreate({
+
+
+    // })
 
   } catch (error) {
     res.status(500).json({
@@ -280,7 +304,7 @@ const buyall = async (req, res) => {
       },
       auto_return: "approved",
       // notification_url: `http://localhost:3001/store/payments`,
-      
+      external_reference: "H-COMERSEHENRY",
     };
 
     for (let e of Cartitems) {

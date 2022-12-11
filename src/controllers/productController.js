@@ -7,8 +7,8 @@ const {
   Category,
   Photo,
   Review,
-  User,
-  Favorite
+  Favorite,
+  User
 } = require("../db.js");
 
 const getAllProducts = async (req, res) =>
@@ -75,18 +75,49 @@ const getproduct = async (req, res) =>
 
   try
   {
-    const product = await Product.findByPk(id, {
-      include: [Brand, Category, Photo, Review],
+    const queryProduct = await Product.findByPk(id, {
+      include: [
+        Brand,
+        Category,
+        Photo,
+        {
+          model: Review,
+          attributes: [
+            'rating',
+            'description'
+          ],
+          include: {
+            model: User,
+            attributes: [
+              'id',
+              'username'
+            ]
+          }
+        }
+      ]
     });
-    if (product.length === 0)
+    if (queryProduct === null)
     {
       return res.status(404).json({
         msg: "No se encontró el producto que estas buscando... seguramente era una capa",
       });
     }
+    const product = queryProduct.get({ plain: true });
+
+    let totalRating = 0;
+    for (let i = 0; i < product.reviews.length; i++)
+    {
+      totalRating = totalRating + product.reviews[i].rating;
+    }
+
+    // Rating promedio
+    product.reviewsNumber = product.reviews.length;
+    product.rating = product.reviewsNumber ? totalRating / product.reviewsNumber : null;
+
     res.status(200).json(product);
   } catch (error)
   {
+    console.log(error);
     res.status(500).json({
       err: "Algo salió terriblemente mal, estamos trabajando en ello",
       description: error,
@@ -249,8 +280,8 @@ const deleteProduct = async (req, res) =>
         productId: id,
       },
     });
-    await queryPhoto.destroy({force: true});
-    await queryProduct.destroy({force: true});
+    await queryPhoto.destroy({ force: true });
+    await queryProduct.destroy({ force: true });
     res.status(200).json({
       msg: "Se fue, ¡Kaboom!, ya no existe más",
     });
@@ -263,13 +294,16 @@ const deleteProduct = async (req, res) =>
   }
 };
 
-const softDeleteProduct = async(req, res) => {
+const softDeleteProduct = async (req, res) =>
+{
   const { id } = req.params;
   const { restore } = req.query;
 
-  try {
+  try
+  {
 
-    if(restore) {
+    if (restore)
+    {
       await Product.restore({
         where: {
           id: id
@@ -284,22 +318,25 @@ const softDeleteProduct = async(req, res) => {
       }
     })
 
-    if(!productToDelete) {
+    if (!productToDelete)
+    {
       return res
-      .status(404)
-      .json({
+        .status(404)
+        .json({
           msg: "No hay producto que coincida con esos valores, chequear Id enviado",
-      });
-    } else {
+        });
+    } else
+    {
       Product.destroy({
         where: {
-            id: id,
+          id: id,
         },
-    });
-    return res.status(200).json({ msg: "Producto escondido con exito!" });
+      });
+      return res.status(200).json({ msg: "Producto escondido con exito!" });
     }
 
-  } catch (error) {
+  } catch (error)
+  {
     res.status(500).json({
       err: "Algo salió terriblemente mal, estamos trabajando en ello",
       description: error,
@@ -341,26 +378,34 @@ const addNewReview = async (req, res) =>
   let { rating, description, userId } = req.body;
   try
   {
-    const queryProduct = await Product.findOne({
+    const [newReview, created] = await Review.findOrCreate({
       where: {
-        id: productId,
+        userId,
+        productId
       },
-    });
-    const queryUser = await User.findOne({
-      where: {
-        id: userId,
-      },
+      defaults: {
+        rating,
+        description
+      }
     });
 
-    const newReview = await Review.create({
-      rating,
-      description,
-    });
-    await newReview.setUser(queryUser);
-    const reviewedProduct = await queryProduct.addReviews(newReview);
-    res.status(201).send(reviewedProduct);
+    if (created === false)
+      return res.status(409).json({
+        err: "Ya se agregó un review a este producto"
+      });
+
+    const reviewedProduct = await Product.findOne(
+      {
+        where: {
+          id: productId
+        },
+        include: [Review]
+      });
+
+    return res.status(201).json(reviewedProduct);
   } catch (error)
   {
+    console.log(error);
     res.status(500).json({
       err: "Algo salió terriblemente mal, estamos trabajando en ello",
       description: error,
@@ -368,6 +413,47 @@ const addNewReview = async (req, res) =>
   }
 };
 
+const updateReview = async (req, res) =>
+{
+  let { productId } = req.params;
+  let { rating, description, userId } = req.body;
+  try
+  {
+    const existingReview = await Review.findOne({
+      where: {
+        userId,
+        productId
+      },
+    });
+
+    if (existingReview === null)
+      return res.status(404).json({
+        err: "No existe el comentario que se desea actualizar"
+      });
+
+    const updatedReview = await existingReview.update({
+      rating,
+      description
+    });
+
+    const reviewedProduct = await Product.findOne(
+      {
+        where: {
+          id: productId
+        },
+        include: [Review]
+      });
+
+    return res.status(201).json(reviewedProduct);
+  } catch (error)
+  {
+    res.status(500).json({
+      err: "Algo salió terriblemente mal, estamos trabajando en ello",
+      description: error,
+    });
+  }
+
+};
 
 module.exports = {
   getAllProducts,
@@ -378,5 +464,6 @@ module.exports = {
   softDeleteProduct,
   updateProduct,
   addNewReview,
+  updateReview,
   getproduct,
 };
