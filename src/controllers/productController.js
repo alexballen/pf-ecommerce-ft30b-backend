@@ -249,8 +249,8 @@ const deleteProduct = async (req, res) =>
         productId: id,
       },
     });
-    await queryPhoto.destroy({force: true});
-    await queryProduct.destroy({force: true});
+    await queryPhoto.destroy({ force: true });
+    await queryProduct.destroy({ force: true });
     res.status(200).json({
       msg: "Se fue, ¡Kaboom!, ya no existe más",
     });
@@ -263,13 +263,16 @@ const deleteProduct = async (req, res) =>
   }
 };
 
-const softDeleteProduct = async(req, res) => {
+const softDeleteProduct = async (req, res) =>
+{
   const { id } = req.params;
   const { restore } = req.query;
 
-  try {
+  try
+  {
 
-    if(restore) {
+    if (restore)
+    {
       await Product.restore({
         where: {
           id: id
@@ -284,22 +287,25 @@ const softDeleteProduct = async(req, res) => {
       }
     })
 
-    if(!productToDelete) {
+    if (!productToDelete)
+    {
       return res
-      .status(404)
-      .json({
+        .status(404)
+        .json({
           msg: "No hay producto que coincida con esos valores, chequear Id enviado",
-      });
-    } else {
+        });
+    } else
+    {
       Product.destroy({
         where: {
-            id: id,
+          id: id,
         },
-    });
-    return res.status(200).json({ msg: "Producto escondido con exito!" });
+      });
+      return res.status(200).json({ msg: "Producto escondido con exito!" });
     }
 
-  } catch (error) {
+  } catch (error)
+  {
     res.status(500).json({
       err: "Algo salió terriblemente mal, estamos trabajando en ello",
       description: error,
@@ -341,26 +347,34 @@ const addNewReview = async (req, res) =>
   let { rating, description, userId } = req.body;
   try
   {
-    const queryProduct = await Product.findOne({
+    const [newReview, created] = await Review.findOrCreate({
       where: {
-        id: productId,
+        userId,
+        productId
       },
-    });
-    const queryUser = await User.findOne({
-      where: {
-        id: userId,
-      },
+      defaults: {
+        rating,
+        description
+      }
     });
 
-    const newReview = await Review.create({
-      rating,
-      description,
-    });
-    await newReview.setUser(queryUser);
-    const reviewedProduct = await queryProduct.addReviews(newReview);
-    res.status(201).send(reviewedProduct);
+    if (created === false)
+      return res.status(409).json({
+        err: "Ya se agregó un review a este producto"
+      });
+
+    const reviewedProduct = await Product.findOne(
+      {
+        where: {
+          id: productId
+        },
+        include: [Review]
+      });
+
+    return res.status(201).json(reviewedProduct);
   } catch (error)
   {
+    console.log(error);
     res.status(500).json({
       err: "Algo salió terriblemente mal, estamos trabajando en ello",
       description: error,

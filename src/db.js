@@ -73,10 +73,13 @@ User.hasMany(Address)
 Address.belongsTo(User, { foreignKey: 'userId' })
 User.hasOne(Photo)
 
-// User.hasMany(Review)
-// Review.belongsTo(User)
+// Reviews
 User.belongsToMany(Product, { through: Review })
 Product.belongsToMany(User, { through: Review })
+User.hasMany(Review);
+Review.belongsTo(User);
+Product.hasMany(Review);
+Review.hasMany(Product);
 
 User.hasOne(Cart)
 Cart.belongsTo(User)
