@@ -20,7 +20,7 @@ const sequelize = process.env.NODE_ENV === 'production' ?
     database: DB_NAME,
     dialectOptions: {
       ssl: false,
-  
+
     }
   }) :
   new Sequelize(DATABASE_URL, {
@@ -52,7 +52,7 @@ sequelize.models = Object.fromEntries(capsEntries);
 
 // En sequelize.models están todos los modelos importados como propiedades
 // Para relacionarlos hacemos un destructuring
-const { Product, User, Photo, Review, Brand, Category, Address, Cart, Favorite, Compra, Country, City, Message } = sequelize.models;
+const { Product, User, Photo, Review, Brand, Category, Product_category, Address, Cart, Favorite, Compra, Country, City, Message } = sequelize.models;
 
 // Aca vendrian las relaciones
 // Product.hasMany(Reviews);
@@ -66,15 +66,20 @@ Photo.belongsTo(Product)
 Product.belongsTo(Brand)
 Brand.hasMany(Product)
 
-Product.belongsToMany(Category, ({ through: 'Product_Category' }))
-Category.belongsToMany(Product, ({ through: 'Product_Category' }))
+Product.belongsToMany(Category, ({ through: Product_category }))
+Category.belongsToMany(Product, ({ through: Product_category }))
 
 User.hasMany(Address)
-Address.belongsTo(User,  { foreignKey: 'userId' })
+Address.belongsTo(User, { foreignKey: 'userId' })
 User.hasOne(Photo)
 
-User.hasMany(Review)
-Review.belongsTo(User)
+// Reviews
+User.belongsToMany(Product, { through: Review })
+Product.belongsToMany(User, { through: Review })
+User.hasMany(Review);
+Review.belongsTo(User);
+Product.hasMany(Review);
+Review.hasMany(Product);
 
 User.hasOne(Cart)
 Cart.belongsTo(User)
@@ -92,7 +97,7 @@ User.hasMany(Compra)
 
 Country.hasMany(City);
 City.belongsTo(Country);
-Country.hasMany(User, {foreignKey: 'countryOfOriginId'})
+Country.hasMany(User, { foreignKey: 'countryOfOriginId' })
 
 City.hasMany(User, { foreignKey: 'cityOfOriginId' });
 User.belongsTo(City, { as: 'CityOfOrigin', foreignKey: 'cityOfOriginId' });
