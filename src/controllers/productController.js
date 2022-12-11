@@ -382,6 +382,47 @@ const addNewReview = async (req, res) =>
   }
 };
 
+const updateReview = async (req, res) =>
+{
+  let { productId } = req.params;
+  let { rating, description, userId } = req.body;
+  try
+  {
+    const existingReview = await Review.findOne({
+      where: {
+        userId,
+        productId
+      },
+    });
+
+    if (existingReview === null)
+      return res.status(404).json({
+        err: "No existe el comentario que se desea actualizar"
+      });
+
+    const updatedReview = await existingReview.update({
+      rating,
+      description
+    });
+
+    const reviewedProduct = await Product.findOne(
+      {
+        where: {
+          id: productId
+        },
+        include: [Review]
+      });
+
+    return res.status(201).json(reviewedProduct);
+  } catch (error)
+  {
+    res.status(500).json({
+      err: "Algo salió terriblemente mal, estamos trabajando en ello",
+      description: error,
+    });
+  }
+
+};
 
 module.exports = {
   getAllProducts,
@@ -392,5 +433,6 @@ module.exports = {
   softDeleteProduct,
   updateProduct,
   addNewReview,
+  updateReview,
   getproduct,
 };
