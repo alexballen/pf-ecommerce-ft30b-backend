@@ -7,7 +7,6 @@ const {
   Category,
   Photo,
   Review,
-  User,
   Favorite
 } = require("../db.js");
 
@@ -75,18 +74,35 @@ const getproduct = async (req, res) =>
 
   try
   {
-    const product = await Product.findByPk(id, {
-      include: [Brand, Category, Photo, Review],
+    const queryProduct = await Product.findByPk(id, {
+      include: [
+        Brand,
+        Category,
+        Photo,
+        Review]
     });
-    if (product.length === 0)
+    if (queryProduct === null)
     {
       return res.status(404).json({
         msg: "No se encontró el producto que estas buscando... seguramente era una capa",
       });
     }
+    const product = queryProduct.get({ plain: true });
+
+    let totalRating = 0;
+    for (let i = 0; i < product.reviews.length; i++)
+    {
+      totalRating = totalRating + product.reviews[i].rating;
+    }
+
+    // Rating promedio
+    product.reviewsNumber = product.reviews.length;
+    product.rating = product.reviewsNumber ? totalRating / product.reviewsNumber : null;
+
     res.status(200).json(product);
   } catch (error)
   {
+    console.log(error);
     res.status(500).json({
       err: "Algo salió terriblemente mal, estamos trabajando en ello",
       description: error,
