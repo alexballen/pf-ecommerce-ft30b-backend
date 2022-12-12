@@ -10,8 +10,9 @@ const {
   Address,
 } = require("../db.js");
 const { Op } = require("sequelize");
-
+const emailer = require('../emailer/registrationMail.js')
 const { card_token } = require("mercadopago");
+
 
 async function createNewUser(user) {
   let { email, given_name, family_name, nickname, picture } = user;
@@ -137,11 +138,42 @@ const completeSignUp = async (req, res) => {
       where: { id: userId },
     });
 
-    let city = await City.findOne({
-      where: {
-        id: cityId,
-      },
-    });
+
+const userLogin = async (req, res, next) => {
+    console.log("This is the body:", req.body)
+    const {email}=req.body
+   
+    try {
+      
+        const Us = await User.findOne({where: {
+                    email:email,  
+                },
+                include: { all: true, nested: true }
+                }
+                )
+
+        if(!Us){
+            const response = await createNewUser(req.body)
+            
+            emailer.sendRegistrationMail(response);
+
+            res.status(200).send({
+                msg:"Usuario creado exitosamente",
+                data: await response        
+            })
+        } else if (Us.isBan === true){
+            res.status(403).send({msg: "Usuario blockeado"})
+        }
+        else{res.status(200).send({data:Us})}
+
+    } catch (error) {
+        console.log(error)
+        res.status(500).json({
+            err: 'Algo salió terriblemente mal, estamos trabajando en ello',
+            description: error
+        })
+    }
+}
 
     const updatedUser = await user.update(
       {
