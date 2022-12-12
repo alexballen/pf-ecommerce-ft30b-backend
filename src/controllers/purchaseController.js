@@ -1,6 +1,5 @@
-const { Cart, User, Product, Compra } = require("../db");
+const { Cart, User, Product, Compra, Historial } = require("../db");
 const mercadopago = require("mercadopago");
-   
 
 const addProductToCart = async (req, res) => {
   let { userId, productId, qty } = req.body;
@@ -40,46 +39,87 @@ const addProductToCart = async (req, res) => {
   }
 };
 
-const crearhistorial = async (req, res) => {
-  const {userId, preference_id
-    ,status,collection_id,collection_status,
-    payment_type,merchant_order_id} = req.body;
+const addtohistorial = async (req, res) => {
+  let { userId, productId } = req.body;
   try {
- 
-    const usuario = await User.findOne({
+    const historial = await Historial.findOne({
       where: {
-        id :userId
+        userId,
       },
- 
+      include: Product,
     });
 
-    // const compra = await Compra.create( {
-    // userId:userId,
-    // preferenceid: preference_id,
-    // collectionid: collection_id,
-    // merchantorderid:merchant_order_id,
-    // status:status,
-    // paymenttype:payment_type,
-    // collectionstatus: collection_status,
+    const producto = await Product.findOne({
+      where: {
+        id: productId,
+      },
+    });
 
-    // } )
+    historial.products.forEach((p) => {
+      return async function () {
+        if (p.id === productId) {
+          await historial.removeProducts(queryProduct);
+        }
+      };
+    });
 
-   const compra =  await usuario.createCompra( { 
+    await historial.addProduct(producto);
+
+    res.status(200).json({
+      msg: "Articulo agregado al historial correctamente)",
+    });
+  } catch (error) {
+    res.status(500).json({
+      err: "Algo salió terriblemente mal, estamos trabajando en ello",
+      description: error,
+    });
+  }
+};
+
+const crearhistorial = async (req, res) => {
+  const {
+    userId,
+    preference_id,
+    status,
+    collection_id,
+    collection_status,
+    payment_type,
+    merchant_order_id,
+  } = req.body;
+  try {
+    const usuario = await User.findOne({
+      where: {
+        id: userId,
+      },
+    });
+
+    const creado = await Compra.findOne({
+      where: {
+        collectionid: collection_id,
+      },
+    });
+
+    if (!creado && preference_id && collection_id) {
+      const compra = await usuario.createCompra({
         preferenceid: preference_id,
         collectionid: collection_id,
-        merchantorderid:merchant_order_id,
-        status:status,
-        paymenttype:payment_type,
+        merchantorderid: merchant_order_id,
+        status: status,
+        paymenttype: payment_type,
         collectionstatus: collection_status,
-       }
-     )  
-     
-    
- 
+      });
 
- 
-    res.status(200).json(compra);
+      res.status(200).json(
+        {
+          msg: "Articulo creado exitosamente en database al historial correctamente, ¡Genial! ¡Más consumismo!",
+        },
+        { compra: compra }
+      );
+    }
 
+    res
+      .status(200)
+      .json({ msg: "Articulo ya existe en database al historial" });
   } catch (error) {
     res.status(500).json({
       err: "Algo salió terriblemente mal, estamos trabajando en ello",
@@ -134,23 +174,39 @@ const removeFromCart = async (req, res) => {
 
 const buyproduct = async (req, res) => {
   const { id } = req.params;
-  const { quantity, userId } = req.body;
+  const {
+    quantity,
+    userId,
+    Apellido,
+    Barrio,
+
+    Ciudad,
+    Estado,
+    Nombre,
+    Pais,
+    Prefijo,
+    Telefono,
+    calle1,
+    calle2,
+    zipcode,
+    tipoCalle,
+    numerocalle,
+  } = req.body;
 
   try {
-    const product = await Product.findByPk(id,{include : {all : true}});
+    const product = await Product.findByPk(id, { include: { all: true } });
     if (product.length === 0) {
       return res.status(404).json({
         msg: "No se encontró el producto que estas buscando... seguramente era una capa",
       });
     }
- 
+
     const user = await User.findOne({
       where: {
         id: userId,
       },
- 
     });
- 
+
     // product.stock = product.stock - quantity
     // await product.save()
     // const queryCart = await Cart.findOne({
@@ -164,67 +220,56 @@ const buyproduct = async (req, res) => {
 
     let preference = {
       payer: {
+        phone: {
+          area_code: Prefijo,
+          number: parseInt(Telefono),
+        },
+        address: {
+          zip_code: zipcode,
+          street_name: tipoCalle,
+          street_number: parseInt(numerocalle),
+        },
         email: user.email,
-        name: user.username,
-        // address:
-        // {
-        //   street_name : user.street ,
-        //   zip_code: user.zipCode , street_number: null
-        // }
-        // // identification: 
-        // {
-        //    number: '', type: '' 
-        //   },
-        // // phone: 
-        //   {
-        //    number: user.phoneNumber 
-        //   },
+
+        name: Nombre,
+        surname: Apellido,
       },
-   // shipments: {
-      //   receiver_address: {
-      //     zip_code: user.zipCode, //string
-      //     street_name: user.street, //string
-      //     street_number: user.street, //numero
-      //     floor: user.houseNumber, //string
-      //     apartment: user.houseNumber, //string
-      //     city_name: user.city, //string
-      //     state_name: user.neighborhood, //string
-      //     country_name: user.country //string
-    
-      //   }},
-  
+      shipments: {
+        receiver_address: {
+          zip_code: zipcode, //string
+          street_name: tipoCalle, //string
+          street_number: parseInt(numerocalle),
+          floor: `${calle1}-${calle2}`, //string
+          apartment: `${calle1}-${calle2}`, //string
+          city_name: Ciudad, //string
+          state_name: `${Estado}-${Barrio}`, //string
+          country_name: Pais, //string
+        },
+      },
+
       items: [
-      
         {
           id: product.id,
           title: product.name,
           unit_price: product.unitPrice,
-          quantity: parseInt(quantity) ,
+          quantity: parseInt(quantity),
           picture_url: product.photos[0].url,
-
         },
-
       ],
-  
+
       back_urls: {
-        success: `https://localhost:3000/itempayments`,
-        failure: `https://localhost:3000/paymentsfail`,
-        pending: `https://localhost:3000/paymentspending`,
+        success: `https://localhost:3000/ItemPayments/${userId}`,
+        failure: `https://localhost:3000/paymentsfail/${userId}`,
+        pending: `https://localhost:3000/paymentspending/${userId}`,
       },
       auto_return: "approved",
       // notification_url: `http://localhost:3001/store/payments/`,
       external_reference: "H-COMERSEHENRY",
     };
-  
 
-  mercadopago.preferences.create(preference).then( async function (response) {   
-  res.status(200).json(response.body);
-   
-    
-      
-    }); 
-
-
+    mercadopago.preferences.create(preference).then(async function (response) {
+      res.status(200).json(response.body);
+    });
   } catch (error) {
     res.status(500).json({
       err: "Algo salió terriblemente mal, estamos trabajando en ello",
@@ -235,16 +280,31 @@ const buyproduct = async (req, res) => {
 
 const getpayinfo = async (req, res) => {
   try {
-
-
-
     res.status(200).json(req.body);
 
     // await Compra.findOrCreate({
 
-
     // })
+  } catch (error) {
+    res.status(500).json({
+      err: "Algo salió terriblemente mal, estamos trabajando en ello",
+      description: error,
+    });
+  }
+};
 
+const getuserpay = async (req, res) => {
+  const { userId } = req.body;
+  try {
+    const usuario = await User.findOne({
+      where: {
+        id: userId,
+      },
+    });
+
+    const data = await usuario.getCompras();
+
+    res.status(200).json(data);
   } catch (error) {
     res.status(500).json({
       err: "Algo salió terriblemente mal, estamos trabajando en ello",
@@ -254,11 +314,25 @@ const getpayinfo = async (req, res) => {
 };
 
 const buyall = async (req, res) => {
-  const { Cartitems ,userId} = req.body;
+  const {
+    Cartitems,
+    userId,
+    Apellido,
+    Barrio,
+    Ciudad,
+    Estado,
+    Nombre,
+    Pais,
+    Prefijo,
+    Telefono,
+    calle1,
+    calle2,
+    zipcode,
+    tipoCalle,
+    numerocalle,
+  } = req.body;
 
   try {
- 
-   
     const user = await User.findOne({
       where: {
         id: userId,
@@ -268,39 +342,40 @@ const buyall = async (req, res) => {
 
     var preference = {
       items: [],
+
       payer: {
+        phone: {
+          area_code: Prefijo,
+          number: parseInt(Telefono),
+        },
+        address: {
+          zip_code: zipcode,
+          street_name: tipoCalle,
+          street_number: parseInt(numerocalle),
+        },
         email: user.email,
-        name: user.username,
-    // address:
-        // {
-        //   street_name : user.street ,
-        //   zip_code: user.zipCode , street_number: null
-        // }
-        // // identification: 
-        // {
-        //    number: '', type: '' 
-        //   },
-        // // phone: 
-        //   {
-        //    number: user.phoneNumber 
-        //   },
+
+        name: Nombre,
+        surname: Apellido,
       },
-      // shipments: {
-         //   receiver_address: {
-         //     zip_code: user.zipCode, //string
-         //     street_name: user.street, //string
-         //     street_number: user.street, //numero
-         //     floor: user.houseNumber, //string
-         //     apartment: user.houseNumber, //string
-         //     city_name: user.city, //string
-         //     state_name: user.neighborhood, //string
-         //     country_name: user.country //string
-       
-         //   }},
+      shipments: {
+        receiver_address: {
+          zip_code: zipcode, //string
+          street_name: tipoCalle, //string
+
+          street_number: parseInt(numerocalle),
+
+          state_name: `${Estado}-${Barrio}`, //string
+          apartment: `${calle1}-${calle2}`, //string
+          city_name: Ciudad, //string
+
+          country_name: Pais, //string
+        },
+      },
       back_urls: {
-        success: `https://localhost:3000/cartpayments`,
-        failure: `https://localhost:3000/paymentsfail`,
-        pending: `https://localhost:3000/paymentspending}`,
+        success: `https://localhost:3000/CartPayments/${userId}`,
+        failure: `https://localhost:3000/paymentsfail/${userId}`,
+        pending: `https://localhost:3000/paymentspending/${userId}`,
       },
       auto_return: "approved",
       // notification_url: `http://localhost:3001/store/payments`,
@@ -316,7 +391,7 @@ const buyall = async (req, res) => {
         picture_url: e.photos[0].url,
       });
     }
-    
+
     // Cartitems.forEach( async product => {
     //     const queryProduct = await Product.findOne({
     //         where: {
@@ -325,12 +400,10 @@ const buyall = async (req, res) => {
     //     })
     //     queryProduct.stock = queryProduct.stock - product.quantity
     //     await queryProduct.save()
-    // }) 
+    // })
 
     mercadopago.preferences.create(preference).then(function (response) {
       res.status(200).json(response.body);
-      
-  
     });
   } catch (error) {
     res.status(500).json({
@@ -364,7 +437,6 @@ const deleteAllCart = async (req, res) => {
 };
 
 module.exports = {
-
   addProductToCart,
   getCart,
   removeFromCart,
@@ -373,5 +445,6 @@ module.exports = {
   buyall,
   getpayinfo,
   crearhistorial,
+  getuserpay,
+  addtohistorial,
 };
-
