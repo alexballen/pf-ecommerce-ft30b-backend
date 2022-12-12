@@ -57,7 +57,7 @@ const userLogin = async (req, res, next) => {
         if(!Us){
             const response = await createNewUser(req.body)
             
-            emailer.sendRegistrationMail(response)
+            emailer.sendRegistrationMail(response);
 
             res.status(200).send({
                 msg:"Usuario creado exitosamente",
