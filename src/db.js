@@ -4,31 +4,32 @@ const fs = require('fs');
 const path = require('path');
 const Knex = require('knex')
 const {
-  DB_HOST, DB_NAME, DB_PASSWORD, DB_USER, DATABASE_URL, 
+  DB_HOST, DB_NAME, DB_PASSWORD, DB_USER, DATABASE_URL
 } = process.env;
 
 
 
 
-const sequelize = 
-  // new Sequelize({
-  // protocol: 'postgres',
-  // dialect: 'postgres',
-  // username: DB_USER, 
-  // password: DB_PASSWORD,
-  // host: DB_HOST,
-  // database: DB_NAME,
-  // dialectOptions: {
-  //   ssl: false
-  // },
-  new Sequelize(DATABASE_URL,{
+const sequelize = process.env.NODE_ENV === 'production' ?
+  new Sequelize({
+    protocol: 'postgres',
+    dialect: 'postgres',
+    username: DB_USER,
+    password: DB_PASSWORD,
+    host: DB_HOST,
+    database: DB_NAME,
+    dialectOptions: {
+      ssl: false,
+
+    }
+  }) :
+  new Sequelize(DATABASE_URL, {
     protocol: 'postgres',
     dialect: 'postgres',
     dialectOptions: {
       ssl: false
     },
-  });
-
+  })
 
 const basename = path.basename(__filename);
 
@@ -37,7 +38,8 @@ const modelDefiners = [];
 // Leemos todos los archivos de la carpeta Models, los requerimos y agregamos al arreglo modelDefiners
 fs.readdirSync(path.join(__dirname, '/models'))
   .filter((file) => (file.indexOf('.') !== 0) && (file !== basename) && (file.slice(-3) === '.js'))
-  .forEach((file) => {
+  .forEach((file) =>
+  {
     modelDefiners.push(require(path.join(__dirname, '/models', file)));
   });
 
@@ -50,7 +52,7 @@ sequelize.models = Object.fromEntries(capsEntries);
 
 // En sequelize.models están todos los modelos importados como propiedades
 // Para relacionarlos hacemos un destructuring
-const { Product, User, Photo, Review, Brand, Category, Address, Cart, Favorite} = sequelize.models;
+const { Product, User, Photo, Review, Brand, Category, Product_category, Address, Cart, Favorite, Compra, Country, City, Message } = sequelize.models;
 
 // Aca vendrian las relaciones
 // Product.hasMany(Reviews);
@@ -64,15 +66,20 @@ Photo.belongsTo(Product)
 Product.belongsTo(Brand)
 Brand.hasMany(Product)
 
-Product.belongsToMany(Category, ({ through: 'Product_Category' }))
-Category.belongsToMany(Product, ({through: 'Product_Category'}))
+Product.belongsToMany(Category, ({ through: Product_category }))
+Category.belongsToMany(Product, ({ through: Product_category }))
 
-User.hasOne(Address)
-Address.belongsTo(User)
+User.hasMany(Address)
+Address.belongsTo(User, { foreignKey: 'userId' })
 User.hasOne(Photo)
 
-User.hasMany(Review)
-Review.belongsTo(User)
+// Reviews
+User.belongsToMany(Product, { through: Review })
+Product.belongsToMany(User, { through: Review })
+User.hasMany(Review);
+Review.belongsTo(User);
+Product.hasMany(Review);
+Review.hasMany(Product);
 
 User.hasOne(Cart)
 Cart.belongsTo(User)
@@ -82,8 +89,18 @@ User.hasOne(Favorite)
 Favorite.belongsTo(User)
 Product.belongsToMany(Favorite, { through: 'Product_Favorite' })
 Favorite.belongsToMany(Product, { through: 'Product_Favorite' })
+Compra.belongsTo(User)
+User.hasMany(Compra)
 
+// Compra.belongsToMany(Cart, ({ through: 'Compra_Cart' }))
+// Cart.belongsToMany(Compra, ({ through: 'Compra_Cart' }))
 
+Country.hasMany(City);
+City.belongsTo(Country);
+Country.hasMany(User, { foreignKey: 'countryOfOriginId' })
+
+City.hasMany(User, { foreignKey: 'cityOfOriginId' });
+User.belongsTo(City, { as: 'CityOfOrigin', foreignKey: 'cityOfOriginId' });
 
 module.exports = {
   ...sequelize.models, // para poder importar los modelos así: const { Product, User } = require('./db.js');
