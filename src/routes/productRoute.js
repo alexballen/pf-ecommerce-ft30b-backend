@@ -9,12 +9,11 @@ const {
   softDeleteProduct,
   updateProduct,
   addNewReview,
-  updateReview
-
+  updateReview,
+  banerProducts,
 } = require("../controllers/productController.js");
 
 const productRoute = Router();
-
 
 productRoute.get("/", getAllProducts);
 productRoute.post("/", createNewProduct);
@@ -26,5 +25,6 @@ productRoute.delete("/:id", deleteProduct);
 productRoute.delete("/softDelete/:id", softDeleteProduct);
 productRoute.post("/:productId/review", addNewReview);
 productRoute.put("/:productId/review", updateReview);
+productRoute.get("/banerProducts", banerProducts);
 
 module.exports = productRoute;

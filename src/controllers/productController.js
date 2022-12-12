@@ -8,32 +8,22 @@ const {
   Photo,
   Review,
   Favorite,
-  User
+  User,
 } = require("../db.js");
 
-const getAllProducts = async (req, res) =>
-{
+const getAllProducts = async (req, res) => {
   const { userId } = req.query;
-  try
-  {
+  try {
     let queryProducts;
-    if (!userId)
-    {
+    if (!userId) {
       queryProducts = await Product.findAll({
-        include: [
-          Brand,
-          Category,
-          Photo,
-          Review
-        ],
+        include: [Brand, Category, Photo, Review],
       });
-    }
-    else 
-    {
+    } else {
       const queryFavorite = await Favorite.findOne({
         where: {
-          userId
-        }
+          userId,
+        },
       });
 
       queryProducts = await Product.findAll({
@@ -46,22 +36,20 @@ const getAllProducts = async (req, res) =>
             model: Favorite,
             through: {
               where: {
-                favoriteId: queryFavorite.id
-              }
-            }
-          }
-        ]
+                favoriteId: queryFavorite.id,
+              },
+            },
+          },
+        ],
       });
     }
-    if (queryProducts.length === 0)
-    {
+    if (queryProducts.length === 0) {
       return res.status(404).json({
         msg: "No hay productos en la base de datos, agrega algunos perezos@",
       });
     }
     res.status(200).send(queryProducts);
-  } catch (error)
-  {
+  } catch (error) {
     res.status(500).json({
       err: "Algo salió terriblemente mal, estamos trabajando en ello",
       description: error,
@@ -69,12 +57,10 @@ const getAllProducts = async (req, res) =>
   }
 };
 
-const getproduct = async (req, res) =>
-{
+const getproduct = async (req, res) => {
   const { id } = req.params;
 
-  try
-  {
+  try {
     const queryProduct = await Product.findByPk(id, {
       include: [
         Brand,
@@ -82,22 +68,15 @@ const getproduct = async (req, res) =>
         Photo,
         {
           model: Review,
-          attributes: [
-            'rating',
-            'description'
-          ],
+          attributes: ["rating", "description"],
           include: {
             model: User,
-            attributes: [
-              'id',
-              'username'
-            ]
-          }
-        }
-      ]
+            attributes: ["id", "username"],
+          },
+        },
+      ],
     });
-    if (queryProduct === null)
-    {
+    if (queryProduct === null) {
       return res.status(404).json({
         msg: "No se encontró el producto que estas buscando... seguramente era una capa",
       });
@@ -105,18 +84,18 @@ const getproduct = async (req, res) =>
     const product = queryProduct.get({ plain: true });
 
     let totalRating = 0;
-    for (let i = 0; i < product.reviews.length; i++)
-    {
+    for (let i = 0; i < product.reviews.length; i++) {
       totalRating = totalRating + product.reviews[i].rating;
     }
 
     // Rating promedio
     product.reviewsNumber = product.reviews.length;
-    product.rating = product.reviewsNumber ? totalRating / product.reviewsNumber : null;
+    product.rating = product.reviewsNumber
+      ? totalRating / product.reviewsNumber
+      : null;
 
     res.status(200).json(product);
-  } catch (error)
-  {
+  } catch (error) {
     console.log(error);
     res.status(500).json({
       err: "Algo salió terriblemente mal, estamos trabajando en ello",
@@ -125,8 +104,7 @@ const getproduct = async (req, res) =>
   }
 };
 
-async function createNewProduct(req, res)
-{
+async function createNewProduct(req, res) {
   const {
     name,
     stock,
@@ -137,8 +115,7 @@ async function createNewProduct(req, res)
     description,
   } = req.body;
   const transaction = await conn.transaction();
-  try
-  {
+  try {
     const newProduct = await Product.create(
       {
         name,
@@ -173,11 +150,9 @@ async function createNewProduct(req, res)
 
     let categoriesArray = [];
 
-    if (typeof categories === "string")
-    {
+    if (typeof categories === "string") {
       categoriesArray.push(categories);
-    } else
-    {
+    } else {
       categories.map((c) => categoriesArray.push(c));
     }
 
@@ -205,8 +180,7 @@ async function createNewProduct(req, res)
 
     await transaction.commit();
     res.status(201).send(readyProduct);
-  } catch (error)
-  {
+  } catch (error) {
     await transaction.rollback();
     res.status(500).json({
       err: "Algo salió terriblemente mal, estamos trabajando en ello",
@@ -215,20 +189,16 @@ async function createNewProduct(req, res)
   }
 }
 
-const getCategories = async (req, res) =>
-{
-  try
-  {
+const getCategories = async (req, res) => {
+  try {
     let allCategories = await Category.findAll();
-    if (allCategories.length === 0 || !allCategories)
-    {
+    if (allCategories.length === 0 || !allCategories) {
       return res.status(404).json({
         msg: "Ninguna categoria en la base de datos",
       });
     }
     res.status(200).send(allCategories);
-  } catch (error)
-  {
+  } catch (error) {
     res.status(500).json({
       err: "Algo salió terriblemente mal, estamos trabajando en ello",
       description: error,
@@ -236,20 +206,16 @@ const getCategories = async (req, res) =>
   }
 };
 
-const getBrands = async (req, res) =>
-{
-  try
-  {
+const getBrands = async (req, res) => {
+  try {
     let allBrands = await Brand.findAll();
-    if (allBrands.length === 0 || !allBrands)
-    {
+    if (allBrands.length === 0 || !allBrands) {
       return res.status(404).json({
         msg: "No hay marcas en la base de datos, llama a Miranda Presley, a Edna Moda seguro que te ayudan con esto",
       });
     }
     res.status(200).send(allBrands);
-  } catch (error)
-  {
+  } catch (error) {
     res.status(500).json({
       err: "Algo salió terriblemente mal, estamos trabajando en ello",
       description: error,
@@ -257,19 +223,16 @@ const getBrands = async (req, res) =>
   }
 };
 
-const deleteProduct = async (req, res) =>
-{
+const deleteProduct = async (req, res) => {
   let { id } = req.params;
 
-  try
-  {
+  try {
     let queryProduct = await Product.findOne({
       where: {
         id,
       },
     });
-    if (queryProduct.length === 0 || !queryProduct)
-    {
+    if (queryProduct.length === 0 || !queryProduct) {
       return res.status(404).json({
         msg: "Llamamos a Scotland Yard, pero ni ellos encontraon lo que buscas ",
       });
@@ -285,8 +248,7 @@ const deleteProduct = async (req, res) =>
     res.status(200).json({
       msg: "Se fue, ¡Kaboom!, ya no existe más",
     });
-  } catch (error)
-  {
+  } catch (error) {
     res.status(500).json({
       err: "Algo salió terriblemente mal, estamos trabajando en ello",
       description: error,
@@ -294,39 +256,44 @@ const deleteProduct = async (req, res) =>
   }
 };
 
-const softDeleteProduct = async (req, res) =>
-{
+const softDeleteProduct = async (req, res) => {
   const { id } = req.params;
   const { restore } = req.query;
 
-  try
-  {
-
-    if (restore)
-    {
+  try {
+    if (restore) {
       await Product.restore({
         where: {
-          id: id
-        }
-      })
-      return res.status(200).json({ msg: "Producto devuelta en el mapa!" })
+          id: id,
+        },
+      });
+      const productSoftD = await Product.findOne({
+        where: {
+          id,
+        },
+      });
+      productSoftD.set({
+        isBan: false,
+      });
+      await productSoftD.save();
+      return res.status(200).json({ msg: "Producto devuelta en el mapa!" });
     }
 
     const productToDelete = await Product.findOne({
       where: {
-        id: id
-      }
-    })
+        id: id,
+      },
+    });
 
-    if (!productToDelete)
-    {
-      return res
-        .status(404)
-        .json({
-          msg: "No hay producto que coincida con esos valores, chequear Id enviado",
-        });
-    } else
-    {
+    if (!productToDelete) {
+      return res.status(404).json({
+        msg: "No hay producto que coincida con esos valores, chequear Id enviado",
+      });
+    } else {
+      productToDelete.set({
+        isBan: true,
+      });
+      await productToDelete.save();
       Product.destroy({
         where: {
           id: id,
@@ -334,22 +301,18 @@ const softDeleteProduct = async (req, res) =>
       });
       return res.status(200).json({ msg: "Producto escondido con exito!" });
     }
-
-  } catch (error)
-  {
+  } catch (error) {
     res.status(500).json({
       err: "Algo salió terriblemente mal, estamos trabajando en ello",
       description: error,
     });
   }
-}
+};
 
-const updateProduct = async (req, res) =>
-{
+const updateProduct = async (req, res) => {
   let { productId } = req.query;
   let { name, description, stock, unitPrice } = req.body;
-  try
-  {
+  try {
     const queryProduct = await Product.findOne({
       where: {
         id: productId,
@@ -363,8 +326,7 @@ const updateProduct = async (req, res) =>
       unitPrice,
     });
     res.status(201).send(updatedProduct);
-  } catch (error)
-  {
+  } catch (error) {
     res.status(500).json({
       err: "Algo salió terriblemente mal, estamos trabajando en ello",
       description: error,
@@ -372,39 +334,35 @@ const updateProduct = async (req, res) =>
   }
 };
 
-const addNewReview = async (req, res) =>
-{
+const addNewReview = async (req, res) => {
   let { productId } = req.params;
   let { rating, description, userId } = req.body;
-  try
-  {
+  try {
     const [newReview, created] = await Review.findOrCreate({
       where: {
         userId,
-        productId
+        productId,
       },
       defaults: {
         rating,
-        description
-      }
+        description,
+      },
     });
 
     if (created === false)
       return res.status(409).json({
-        err: "Ya se agregó un review a este producto"
+        err: "Ya se agregó un review a este producto",
       });
 
-    const reviewedProduct = await Product.findOne(
-      {
-        where: {
-          id: productId
-        },
-        include: [Review]
-      });
+    const reviewedProduct = await Product.findOne({
+      where: {
+        id: productId,
+      },
+      include: [Review],
+    });
 
     return res.status(201).json(reviewedProduct);
-  } catch (error)
-  {
+  } catch (error) {
     console.log(error);
     res.status(500).json({
       err: "Algo salió terriblemente mal, estamos trabajando en ello",
@@ -413,46 +371,55 @@ const addNewReview = async (req, res) =>
   }
 };
 
-const updateReview = async (req, res) =>
-{
+const updateReview = async (req, res) => {
   let { productId } = req.params;
   let { rating, description, userId } = req.body;
-  try
-  {
+  try {
     const existingReview = await Review.findOne({
       where: {
         userId,
-        productId
+        productId,
       },
     });
 
     if (existingReview === null)
       return res.status(404).json({
-        err: "No existe el comentario que se desea actualizar"
+        err: "No existe el comentario que se desea actualizar",
       });
 
     const updatedReview = await existingReview.update({
       rating,
-      description
+      description,
     });
 
-    const reviewedProduct = await Product.findOne(
-      {
-        where: {
-          id: productId
-        },
-        include: [Review]
-      });
+    const reviewedProduct = await Product.findOne({
+      where: {
+        id: productId,
+      },
+      include: [Review],
+    });
 
     return res.status(201).json(reviewedProduct);
-  } catch (error)
-  {
+  } catch (error) {
     res.status(500).json({
       err: "Algo salió terriblemente mal, estamos trabajando en ello",
       description: error,
     });
   }
+};
 
+const banerProducts = async (req, res) => {
+  try {
+    const banProduct = await Product.findAll({
+      where: {
+        isBan: true,
+      },
+      paranoid: false,
+    });
+    return res.status(200).json(banProduct);
+  } catch (error) {
+    return res.status(500).json({ message: error.message });
+  }
 };
 
 module.exports = {
@@ -466,4 +433,5 @@ module.exports = {
   addNewReview,
   updateReview,
   getproduct,
+  banerProducts,
 };
