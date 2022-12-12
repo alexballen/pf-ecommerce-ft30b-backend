@@ -7,31 +7,22 @@ const {
   Product,
   Brand,
   Country,
-  Address
+  Address,
 } = require("../db.js");
 const { Op } = require("sequelize");
 
-const { card_token } = require('mercadopago')
+const { card_token } = require("mercadopago");
 
-async function createNewUser(user)
-{
-
-    let {
-        email,
-        given_name,
-        family_name,
-        nickname,
-        picture
-    } = user
-    const transaction = await conn.transaction()
-    try
-    {
-        let newUser = await User.create({
-            email: email,
-            username: nickname,
-            firstName: given_name,
-            lastName: family_name
-        })
+async function createNewUser(user) {
+  let { email, given_name, family_name, nickname, picture } = user;
+  const transaction = await conn.transaction();
+  try {
+    let newUser = await User.create({
+      email: email,
+      username: nickname,
+      firstName: given_name,
+      lastName: family_name,
+    });
 
     await newUser.createCart();
     await newUser.createFavorite();
@@ -51,13 +42,12 @@ async function createNewUser(user)
   }
 }
 const userLogin = async (req, res) => {
-  
   const { email } = req.body;
 
   try {
     const Us = await User.findOne({
       where: {
-        email
+        email,
       },
       include: { all: true, nested: true },
     });
@@ -137,11 +127,10 @@ async function updateUserData(req, res) {
   }
 }
 
-const completeSignUp = async (req, res) =>
-{
-    let { userId } = req.params
-    let { phoneNumber, cityId } = req.body
-    const transaction = await conn.transaction();
+const completeSignUp = async (req, res) => {
+  let { userId } = req.params;
+  let { phoneNumber, cityId } = req.body;
+  const transaction = await conn.transaction();
 
   try {
     let user = await User.findOne({
@@ -186,9 +175,9 @@ async function deleteUser(req, res) {
     });
     const queryAddress = await Address.findOne({
       where: {
-        userId: userId
-      }
-    })
+        userId: userId,
+      },
+    });
 
     const queryPhoto = await Photo.findOne({
       where: {
@@ -199,15 +188,13 @@ async function deleteUser(req, res) {
     if (!userToDelete || userToDelete.length === 0) {
       return res.status(404).json({ msg: "¡Dejad al usuario tranquilo!" });
     } else {
-      await queryAddress.destroy({ force: true })
-      await queryPhoto.destroy({ force: true })
+      await queryAddress.destroy({ force: true });
+      await queryPhoto.destroy({ force: true });
       await userToDelete.destroy({ force: true });
-      
 
       return res.status(200).json({ msg: "¡Avada kedabra!..... Oops!" });
     }
   } catch (error) {
-   
     res.status(500).json({
       err: "Algo salió terriblemente mal, estamos trabajando en ello",
       description: error,
@@ -218,16 +205,26 @@ async function deleteUser(req, res) {
 async function userSoftDelete(req, res) {
   const { userId } = req.params;
   const { restore } = req.query;
+
   try {
-    if (restore == true) {
+    if (restore) {
       await User.restore({
         where: {
           id: userId,
         },
       });
+      const userSoftD = await User.findOne({
+        where: {
+          id: userId,
+        },
+      });
+      userSoftD.set({
+        isBan: false,
+      });
+      await userSoftD.save();
       return res.status(200).json({ msg: "Usuario devuelta en el mapa!" });
     }
-    const userSoftDelete = User.findOne({
+    const userSoftDelete = await User.findOne({
       where: {
         id: userId,
       },
@@ -237,6 +234,10 @@ async function userSoftDelete(req, res) {
         msg: "No hay usuario que coincida con esos valores, chequear Id enviado",
       });
     } else {
+      userSoftDelete.set({
+        isBan: true,
+      });
+      await userSoftDelete.save();
       User.destroy({
         where: {
           id: userId,
@@ -249,43 +250,6 @@ async function userSoftDelete(req, res) {
       err: "Algo salió terriblemente mal, estamos trabajando en ello",
       description: error,
     });
-  }
-}
-async function userSoftDelete(req, res) {
-  const { userId } = req.params
-  const { restore } = req.query
-
-  try {
-    if (restore) {
-      await User.restore({
-        where: {
-          id: userId,
-        },
-      })
-      return res.status(200).json({ msg: "Usuario devuelta en el mapa!" })
-    }
-    const userSoftDelete = User.findOne({
-      where: {
-        id: userId,
-      },
-    })
-    if (!userSoftDelete) {
-      return res.status(404).json({
-        msg: "No hay usuario que coincida con esos valores, chequear Id enviado",
-      })
-    } else {
-      User.destroy({
-        where: {
-          id: userId,
-        },
-      })
-      return res.status(200).json({ msg: "Usuario escondido con exito!" })
-    }
-  } catch (error) {
-    res.status(500).json({
-        err: 'Algo salió terriblemente mal, estamos trabajando en ello',
-        description: error
-    })
   }
 }
 
@@ -395,8 +359,8 @@ async function removeFromFavorites(req, res) {
   }
 }
 
-async function getUserAddresses(req,res) { 
-  const { userId} = req.body;
+async function getUserAddresses(req, res) {
+  const { userId } = req.body;
   try {
     const response = await Address.findAll({
       where: {
@@ -406,53 +370,50 @@ async function getUserAddresses(req,res) {
 
     res.status(200).json({
       data: response,
-    })
-
+    });
   } catch (error) {
     res.status(500).json({
       err: "Algo salió terriblemente mal, estamos trabajando en ello",
       description: error,
-  });
+    });
   }
 }
 
-
-async function createUserAddress(req,res) { 
-  const { userId, country, street, city, houseNumber, neighborhood, zipCode} = req.body;
+async function createUserAddress(req, res) {
+  const { userId, country, street, city, houseNumber, neighborhood, zipCode } =
+    req.body;
   try {
-
     const queryUser = await User.findOne({
       where: {
-        id: userId
+        id: userId,
       },
-      include: [Address]
-    })
-   
+      include: [Address],
+    });
+
     const [queryCountry, createCountry] = await Country.findOrCreate({
       where: {
-        name: country
+        name: country,
       },
       defaults: {
-        name: country
-      }
-    })
-    
+        name: country,
+      },
+    });
+
     const [queryCity, createCity] = await City.findOrCreate({
       where: {
         name: city,
       },
       defaults: {
-        name: city
-      }
-    })
-     console.log(queryCity)
+        name: city,
+      },
+    });
+    console.log(queryCity);
     if (createCity === true) {
-      await queryCountry.addCity(queryCity)
+      await queryCountry.addCity(queryCity);
     }
 
-    await queryCity.addUser(queryUser)
-    await queryCountry.addUser(queryUser)
-    
+    await queryCity.addUser(queryUser);
+    await queryCountry.addUser(queryUser);
 
     const userAddress = await queryUser.createAddress({
       country,
@@ -460,20 +421,33 @@ async function createUserAddress(req,res) {
       city,
       houseNumber,
       neighborhood,
-      zipCode
-    })
+      zipCode,
+    });
 
     res.status(200).json({
       data: userAddress,
-    })
-
+    });
   } catch (error) {
     res.status(500).json({
       err: "Algo salió terriblemente mal, estamos trabajando en ello",
       description: error,
-  });
+    });
   }
 }
+
+const banerUsers = async (req, res) => {
+  try {
+    const banUser = await User.findAll({
+      where: {
+        isBan: true,
+      },
+      paranoid: false,
+    });
+    return res.status(200).json(banUser);
+  } catch (error) {
+    return res.status(500).json({ message: error.message });
+  }
+};
 
 module.exports = {
   createUserAddress,
@@ -488,4 +462,5 @@ module.exports = {
   addToFavorites,
   removeFromFavorites,
   completeSignUp,
+  banerUsers,
 };
