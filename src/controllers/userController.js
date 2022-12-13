@@ -80,9 +80,6 @@ async function updateUserData(req, res) {
     password,
     username,
     phoneNumber,
-    country,
-    city,
-    gender,
   } = req.body;
 
   try {
@@ -99,25 +96,24 @@ async function updateUserData(req, res) {
       password,
       username,
       phoneNumber,
-      gender,
     });
 
-    if (country !== "" || country !== null || country !== undefined) {
-      const userCountry = await Country.findOne({
-        where: {
-          name: country,
-        },
-        include: City,
-      });
-      await updatedUser.setCountry(userCountry);
-      if (city !== "" || city !== null || city !== undefined) {
-        await userCountry.cities.forEach((c) => {
-          if (c.name === city) {
-            return updatedUser.setCity(c);
-          }
-        });
-      }
-    }
+    // if (country !== "" || country !== null || country !== undefined) {
+    //   const userCountry = await Country.findOne({
+    //     where: {
+    //       name: country,
+    //     },
+    //     include: City,
+    //   });
+    //   await updatedUser.setCountry(userCountry);
+    //   if (city !== "" || city !== null || city !== undefined) {
+    //     await userCountry.cities.forEach((c) => {
+    //       if (c.name === city) {
+    //         return updatedUser.setCity(c);
+    //       }
+    //     });
+    //   }
+    // }
 
     res.status(200).send(updatedUser);
   } catch (error) {
@@ -139,41 +135,6 @@ const completeSignUp = async (req, res) => {
     });
 
 
-const userLogin = async (req, res, next) => {
-    console.log("This is the body:", req.body)
-    const {email}=req.body
-   
-    try {
-      
-        const Us = await User.findOne({where: {
-                    email:email,  
-                },
-                include: { all: true, nested: true }
-                }
-                )
-
-        if(!Us){
-            const response = await createNewUser(req.body)
-            
-            emailer.sendRegistrationMail(response);
-
-            res.status(200).send({
-                msg:"Usuario creado exitosamente",
-                data: await response        
-            })
-        } else if (Us.isBan === true){
-            res.status(403).send({msg: "Usuario blockeado"})
-        }
-        else{res.status(200).send({data:Us})}
-
-    } catch (error) {
-        console.log(error)
-        res.status(500).json({
-            err: 'Algo salió terriblemente mal, estamos trabajando en ello',
-            description: error
-        })
-    }
-}
 
     const updatedUser = await user.update(
       {
