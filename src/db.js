@@ -70,7 +70,6 @@ const {
   Message,
 } = sequelize.models;
 
-
 // Aca vendrian las relaciones
 // Product.hasMany(Reviews);
 
@@ -82,8 +81,8 @@ Photo.belongsTo(Product);
 Product.belongsTo(Brand);
 Brand.hasMany(Product);
 
-Product.belongsToMany(Category, ({ through: 'Product_Category' }))
-Category.belongsToMany(Product, ({ through: 'Product_Category' }))
+Product.belongsToMany(Category, { through: "Product_Category" });
+Category.belongsToMany(Product, { through: "Product_Category" });
 
 User.hasMany(Address);
 Address.belongsTo(User, { foreignKey: "userId" });

@@ -474,6 +474,7 @@ const banerUsers = async (req, res) => {
         isBan: true,
       },
       paranoid: false,
+      include: { all: true, nested: true },
     });
     return res.status(200).json(banUser);
   } catch (error) {
