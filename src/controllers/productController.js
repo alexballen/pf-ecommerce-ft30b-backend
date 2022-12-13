@@ -277,7 +277,6 @@ const softDeleteProduct = async (req, res) => {
       await productSoftD.save();
       return res.status(200).json({ msg: "Producto devuelta en el mapa!" });
     }
-
     const productToDelete = await Product.findOne({
       where: {
         id: id,
@@ -407,15 +406,16 @@ const updateReview = async (req, res) => {
   }
 };
 
-const banerProducts = async (req, res) => {
+const getBanProd = async (req, res) => {
   try {
-    const banProduct = await Product.findAll({
+    const banProd = await Product.findAll({
       where: {
         isBan: true,
       },
       paranoid: false,
+      include: [Brand, Category, Photo, Review],
     });
-    return res.status(200).json(banProduct);
+    res.status(200).send(banProd);
   } catch (error) {
     return res.status(500).json({ message: error.message });
   }
@@ -432,5 +432,5 @@ module.exports = {
   addNewReview,
   updateReview,
   getproduct,
-  banerProducts,
+  getBanProd,
 };
