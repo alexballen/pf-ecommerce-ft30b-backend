@@ -56,6 +56,7 @@ const userLogin = async (req, res) => {
     if (!Us) {
       const response = await createNewUser(req.body);
       res.status(200).send({
+        created:true,
         data: response,
       });
     } else if (Us.isBan === true) {
@@ -73,54 +74,58 @@ const userLogin = async (req, res) => {
 
 async function updateUserData(req, res) {
   let { userId } = req.params;
-  let {
-    firstName,
-    lastName,
-    email,
-    password,
-    username,
-    phoneNumber,
-    country,
-    city,
-    gender,
-  } = req.body;
+  let { firstName, lastName, username, photo, phoneNumber } = req.body;
+  let obj = { firstName:firstName, lastName:lastName, username:username, photo: photo, phoneNumber:phoneNumber}
+  
+  let o = Object.fromEntries(Object.entries(obj).filter(([_, v]) => v != "" && v != undefined));
+ 
 
   try {
     let queryUser = await User.findOne({
       where: {
         id: userId,
       },
-    });
-
-    const updatedUser = await queryUser.update({
-      firstName,
-      lastName,
-      email,
-      password,
-      username,
-      phoneNumber,
-      gender,
-    });
-
-    if (country !== "" || country !== null || country !== undefined) {
-      const userCountry = await Country.findOne({
-        where: {
-          name: country,
-        },
-        include: City,
-      });
-      await updatedUser.setCountry(userCountry);
-      if (city !== "" || city !== null || city !== undefined) {
-        await userCountry.cities.forEach((c) => {
-          if (c.name === city) {
-            return updatedUser.setCity(c);
-          }
-        });
+      include:{
+        model:Photo
       }
+    });
+
+    const updatedUser = await queryUser.update(o);
+
+    if(o.photo){
+      
+      const newPic = await Photo.findOne({
+        where: {
+          userId
+        }
+      })
+  
+      await newPic.update({url: o.photo})
+      // await userPhoto.url = o.photo
+      // await userPhoto.save()
+  
     }
+
+    // if (country !== "" || country !== null || country !== undefined) {
+    //   const userCountry = await Country.findOne({
+    //     where: {
+    //       name: country,
+    //     },
+    //     include: City,
+    //   });
+    //   await updatedUser.setCountry(userCountry);
+    //   if (city !== "" || city !== null || city !== undefined) {
+    //     await userCountry.cities.forEach((c) => {
+    //       if (c.name === city) {
+    //         return updatedUser.setCity(c);
+    //       }
+    //     });
+    //   }
+    // }
 
     res.status(200).send(updatedUser);
   } catch (error) {
+    console.log(error)
     res.status(500).json({
       err: "Algo salió terriblemente mal, estamos trabajando en ello",
       description: error,
@@ -139,41 +144,6 @@ const completeSignUp = async (req, res) => {
     });
 
 
-const userLogin = async (req, res, next) => {
-    console.log("This is the body:", req.body)
-    const {email}=req.body
-   
-    try {
-      
-        const Us = await User.findOne({where: {
-                    email:email,  
-                },
-                include: { all: true, nested: true }
-                }
-                )
-
-        if(!Us){
-            const response = await createNewUser(req.body)
-            
-            emailer.sendRegistrationMail(response);
-
-            res.status(200).send({
-                msg:"Usuario creado exitosamente",
-                data: await response        
-            })
-        } else if (Us.isBan === true){
-            res.status(403).send({msg: "Usuario blockeado"})
-        }
-        else{res.status(200).send({data:Us})}
-
-    } catch (error) {
-        console.log(error)
-        res.status(500).json({
-            err: 'Algo salió terriblemente mal, estamos trabajando en ello',
-            description: error
-        })
-    }
-}
 
     const updatedUser = await user.update(
       {
@@ -439,7 +409,7 @@ async function createUserAddress(req, res) {
         name: city,
       },
     });
-    console.log(queryCity);
+   
     if (createCity === true) {
       await queryCountry.addCity(queryCity);
     }
@@ -460,6 +430,31 @@ async function createUserAddress(req, res) {
       data: userAddress,
     });
   } catch (error) {
+    console.log(error)
+    res.status(500).json({
+      err: "Algo salió terriblemente mal, estamos trabajando en ello",
+      description: error,
+    });
+  }
+}
+
+async function deleteUserAddress(req, res) {
+  const {addressId } = req.params;
+  try {
+    console.log("ADDRESS ID: ", addressId)
+    const queryAddress = await Address.findOne({
+      where: {
+        id: addressId,
+      },
+    });
+    const response = await queryAddress.destroy();
+
+
+    res.status(200).json({
+      data:response ,
+    });
+  } catch (error) {
+    console.log(error)
     res.status(500).json({
       err: "Algo salió terriblemente mal, estamos trabajando en ello",
       description: error,
@@ -484,6 +479,7 @@ const banerUsers = async (req, res) => {
 
 module.exports = {
   createUserAddress,
+  deleteUserAddress,
   getUserAddresses,
   createNewUser,
   userLogin,
