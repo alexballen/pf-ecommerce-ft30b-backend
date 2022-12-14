@@ -55,15 +55,7 @@ const addtohistorial = async (req, res) => {
       },
     });
 
-    historial.products.forEach((p) => {
-      return async function () {
-        if (p.id === productId) {
-          await historial.removeProducts(queryProduct);
-        }
-      };
-    });
-
-    await historial.addProduct(producto);
+    await historial.createtohistorial(producto);
 
     res.status(200).json({
       msg: "Articulo agregado al historial correctamente)",
@@ -231,7 +223,7 @@ const buyproduct = async (req, res) => {
         },
         email: user.email,
 
-        name: Nombre,
+        name: user.username,
         surname: Apellido,
       },
       shipments: {
@@ -355,7 +347,7 @@ const buyall = async (req, res) => {
         },
         email: user.email,
 
-        name: Nombre,
+        name: user.username,
         surname: Apellido,
       },
       shipments: {
