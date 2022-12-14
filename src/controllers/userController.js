@@ -73,30 +73,28 @@ const userLogin = async (req, res) => {
 
 async function updateUserData(req, res) {
   let { userId } = req.params;
-  let {
-    firstName,
-    lastName,
-    email,
-    password,
-    username,
-    phoneNumber,
-  } = req.body;
+  let { firstName, lastName, username, photo, phoneNumber } = req.body;
+  let obj = { firstName:firstName, lastName:lastName, username:username, photo: photo, phoneNumber:phoneNumber}
+  
+  let o = Object.fromEntries(Object.entries(obj).filter(([_, v]) => v != "" && v != undefined));
+  console.log(o)
 
   try {
     let queryUser = await User.findOne({
       where: {
         id: userId,
       },
+      include:{
+        model:Photo
+      }
     });
 
-    const updatedUser = await queryUser.update({
-      firstName,
-      lastName,
-      email,
-      password,
-      username,
-      phoneNumber,
-    });
+    const updatedUser = await queryUser.update(o);
+
+    if(o.photo){
+
+      await queryUser.setPhoto({url:o.photo})
+    }
 
     // if (country !== "" || country !== null || country !== undefined) {
     //   const userCountry = await Country.findOne({
@@ -421,6 +419,31 @@ async function createUserAddress(req, res) {
       data: userAddress,
     });
   } catch (error) {
+    console.log(error)
+    res.status(500).json({
+      err: "Algo salió terriblemente mal, estamos trabajando en ello",
+      description: error,
+    });
+  }
+}
+
+async function deleteUserAddress(req, res) {
+  const {addressId } = req.body;
+  try {
+    
+    const queryAddress = await Address.findOne({
+      where: {
+        id: addressId,
+      },
+    });
+    const response = await queryAddress.destroy({ force: true });
+
+
+    res.status(200).json({
+      data:response ,
+    });
+  } catch (error) {
+    console.log(error)
     res.status(500).json({
       err: "Algo salió terriblemente mal, estamos trabajando en ello",
       description: error,
@@ -445,6 +468,7 @@ const banerUsers = async (req, res) => {
 
 module.exports = {
   createUserAddress,
+  deleteUserAddress,
   getUserAddresses,
   createNewUser,
   userLogin,
