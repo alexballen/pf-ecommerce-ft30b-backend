@@ -23,7 +23,7 @@ userRoute.patch("/:userId", completeSignUp);
 userRoute.route("/address")
 .get(getUserAddresses)
 .post(createUserAddress)
-.delete(deleteUserAddress);
+userRoute.route("/address/:addressId").delete(deleteUserAddress);
 userRoute.put("/userData/:userId", updateUserData);
 userRoute.delete("/delete/:userId", deleteUser);
 userRoute.delete("/softDelete/:userId", userSoftDelete);

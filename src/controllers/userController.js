@@ -56,6 +56,7 @@ const userLogin = async (req, res) => {
     if (!Us) {
       const response = await createNewUser(req.body);
       res.status(200).send({
+        created:true,
         data: response,
       });
     } else if (Us.isBan === true) {
@@ -77,7 +78,7 @@ async function updateUserData(req, res) {
   let obj = { firstName:firstName, lastName:lastName, username:username, photo: photo, phoneNumber:phoneNumber}
   
   let o = Object.fromEntries(Object.entries(obj).filter(([_, v]) => v != "" && v != undefined));
-  console.log(o)
+ 
 
   try {
     let queryUser = await User.findOne({
@@ -92,8 +93,17 @@ async function updateUserData(req, res) {
     const updatedUser = await queryUser.update(o);
 
     if(o.photo){
-
-      await queryUser.setPhoto({url:o.photo})
+      
+      const newPic = await Photo.findOne({
+        where: {
+          userId
+        }
+      })
+  
+      await newPic.update({url: o.photo})
+      // await userPhoto.url = o.photo
+      // await userPhoto.save()
+  
     }
 
     // if (country !== "" || country !== null || country !== undefined) {
@@ -115,6 +125,7 @@ async function updateUserData(req, res) {
 
     res.status(200).send(updatedUser);
   } catch (error) {
+    console.log(error)
     res.status(500).json({
       err: "Algo salió terriblemente mal, estamos trabajando en ello",
       description: error,
@@ -398,7 +409,7 @@ async function createUserAddress(req, res) {
         name: city,
       },
     });
-    console.log(queryCity);
+   
     if (createCity === true) {
       await queryCountry.addCity(queryCity);
     }
@@ -428,15 +439,15 @@ async function createUserAddress(req, res) {
 }
 
 async function deleteUserAddress(req, res) {
-  const {addressId } = req.body;
+  const {addressId } = req.params;
   try {
-    
+    console.log("ADDRESS ID: ", addressId)
     const queryAddress = await Address.findOne({
       where: {
         id: addressId,
       },
     });
-    const response = await queryAddress.destroy({ force: true });
+    const response = await queryAddress.destroy();
 
 
     res.status(200).json({
