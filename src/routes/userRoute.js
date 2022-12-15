@@ -28,7 +28,7 @@ userRoute.put("/userData/:userId", updateUserData);
 userRoute.delete("/delete/:userId", deleteUser);
 userRoute.delete("/softDelete/:userId", userSoftDelete);
 userRoute.get("/banerUsers", banerUsers);
-userRoute.get("/favorites/:userId", getFavorites);
+userRoute.get("/favorites/:userId", getFavorites)
 userRoute.post("/favorites", addToFavorites);
 userRoute.delete("/removeFromFavorites", removeFromFavorites);
 
