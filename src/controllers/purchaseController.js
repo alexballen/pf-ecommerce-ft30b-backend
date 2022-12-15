@@ -199,16 +199,16 @@ const buyproduct = async (req, res) => {
       },
     });
 
-    // product.stock = product.stock - quantity
-    // await product.save()
-    // const queryCart = await Cart.findOne({
-    //   where: {
-    //     userId: userId
-    //   },
-    //   include: Product
-    // })
+    product.stock = product.stock - quantity
+    await product.save()
+    const queryCart = await Cart.findOne({
+      where: {
+        userId: userId
+      },
+      include: Product
+    })
 
-    // queryCart.removeProduct(product);
+    queryCart.removeProduct(product);
 
     let preference = {
       payer: {
@@ -250,9 +250,9 @@ const buyproduct = async (req, res) => {
       ],
 
       back_urls: {
-        success: `https://localhost:3000/ItemPayments/${userId}`,
-        failure: `https://localhost:3000/paymentsfail/${userId}`,
-        pending: `https://localhost:3000/paymentspending/${userId}`,
+        success: `https://h-couture-odxfhjkfia-uc.a.run.app/ItemPayments/${userId}`,
+        failure: `https://h-couture-odxfhjkfia-uc.a.run.app/paymentsfail/${userId}`,
+        pending: `https://h-couture-odxfhjkfia-uc.a.run.app/paymentspending/${userId}`,
       },
       auto_return: "approved",
       // notification_url: `http://localhost:3001/store/payments/`,
@@ -365,9 +365,9 @@ const buyall = async (req, res) => {
         },
       },
       back_urls: {
-        success: `https://localhost:3000/CartPayments/${userId}`,
-        failure: `https://localhost:3000/paymentsfail/${userId}`,
-        pending: `https://localhost:3000/paymentspending/${userId}`,
+        success: `https://h-couture-odxfhjkfia-uc.a.run.app/CartPayments/${userId}`,
+        failure: `https://h-couture-odxfhjkfia-uc.a.run.app/paymentsfail/${userId}`,
+        pending: `https://h-couture-odxfhjkfia-uc.a.run.app/paymentspending/${userId}`,
       },
       auto_return: "approved",
       // notification_url: `http://localhost:3001/store/payments`,
@@ -384,15 +384,15 @@ const buyall = async (req, res) => {
       });
     }
 
-    // Cartitems.forEach( async product => {
-    //     const queryProduct = await Product.findOne({
-    //         where: {
-    //             id: product.id
-    //         }
-    //     })
-    //     queryProduct.stock = queryProduct.stock - product.quantity
-    //     await queryProduct.save()
-    // })
+      Cartitems.forEach( async product => {
+          const queryProduct = await Product.findOne({
+              where: {
+                  id: product.id
+              }
+          })
+          queryProduct.stock = queryProduct.stock - product.quantity
+          await queryProduct.save()
+      })
 
     mercadopago.preferences.create(preference).then(function (response) {
       res.status(200).json(response.body);
