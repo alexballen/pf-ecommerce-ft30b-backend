@@ -250,9 +250,9 @@ const buyproduct = async (req, res) => {
       ],
 
       back_urls: {
-        success: `https://localhost:3000/ItemPayments/${userId}`,
-        failure: `https://localhost:3000/paymentsfail/${userId}`,
-        pending: `https://localhost:3000/paymentspending/${userId}`,
+        success: `https://h-couture-odxfhjkfia-uc.a.run.app/ItemPayments/${userId}`,
+        failure: `https://h-couture-odxfhjkfia-uc.a.run.app/paymentsfail/${userId}`,
+        pending: `https://h-couture-odxfhjkfia-uc.a.run.app/paymentspending/${userId}`,
       },
       auto_return: "approved",
       // notification_url: `http://localhost:3001/store/payments/`,
@@ -365,9 +365,9 @@ const buyall = async (req, res) => {
         },
       },
       back_urls: {
-        success: `https://localhost:3000/CartPayments/${userId}`,
-        failure: `https://localhost:3000/paymentsfail/${userId}`,
-        pending: `https://localhost:3000/paymentspending/${userId}`,
+        success: `https://h-couture-odxfhjkfia-uc.a.run.app/CartPayments/${userId}`,
+        failure: `https://h-couture-odxfhjkfia-uc.a.run.app/paymentsfail/${userId}`,
+        pending: `https://h-couture-odxfhjkfia-uc.a.run.app/paymentspending/${userId}`,
       },
       auto_return: "approved",
       // notification_url: `http://localhost:3001/store/payments`,
