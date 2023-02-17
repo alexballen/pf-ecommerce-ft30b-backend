@@ -3,7 +3,7 @@ const { Sequelize } = require("sequelize");
 const fs = require("fs");
 const path = require("path");
 const Knex = require("knex");
-const { DB_HOST, DB_NAME, DB_PASSWORD, DB_USER, DATABASE_URL } = process.env;
+const { DB_HOST, DB_NAME, DB_PASSWORD, DB_USER, DB_LOCAL_HOST, DB_LOCAL_NAME, DB_LOCAL_USER, DB_LOCAL_PASSWORD} = process.env;
 
 const sequelize =
   process.env.NODE_ENV === "production"
@@ -18,8 +18,12 @@ const sequelize =
           ssl: false,
         },
       })
-    : new Sequelize(DATABASE_URL, {
-        protocol: "postgres",
+    : new Sequelize({
+        database: DB_LOCAL_NAME,
+        username: DB_LOCAL_USER,
+        host: DB_LOCAL_HOST,
+        password: DB_LOCAL_PASSWORD,
+        protocol: "tcp",
         dialect: "postgres",
         dialectOptions: {
           ssl: false,

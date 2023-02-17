@@ -9,18 +9,12 @@ module.exports = (sequelize) => {
             allowNull: false,
             unique: true
         },
-        country: {
-            type: DataTypes.STRING,
-            allowNull: false
-        },
+        
         street: {
             type: DataTypes.STRING,
             allowNull: false
         },
-        city: {
-            type: DataTypes.STRING,
-            allowNull: false
-        },
+        
         houseNumber: {
             type: DataTypes.INTEGER,
             allowNull: false
@@ -36,7 +30,7 @@ module.exports = (sequelize) => {
         fullAddress: {
             type: DataTypes.VIRTUAL,
             get() {
-                return `${this.street} ${this.houseNumber}, ${this.neightborhood}, ${this.city}, ${this.country}, ${this.zipCode}`
+                return `${this.street} ${this.houseNumber}, ${this.neighborhood}, ${this.zipCode}`
             }
         }
     })
