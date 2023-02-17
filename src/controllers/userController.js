@@ -418,9 +418,9 @@ async function createUserAddress(req, res) {
     await queryCountry.addUser(queryUser);
 
     const userAddress = await queryUser.createAddress({
-      country,
+     
       street,
-      city,
+      
       houseNumber,
       neighborhood,
       zipCode,
